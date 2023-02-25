@@ -7,33 +7,41 @@ public abstract class Piece : MonoBehaviour
 {
     public bool check;
     public bool fallen { get; private set; }
+    public bool justFallen;
+    public bool exploded { get; protected set; }
+
     
-    public void CheckNeighbours(ref Grid<Piece> grid, ref List<Piece> list)
+    public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
         
+        Piece right = grid.GetValue(x + 1, y);
+        Piece left = grid.GetValue(x - 1, y);
+        Piece up = grid.GetValue(x, y+1);
+        Piece down = grid.GetValue(x, y-1);
+        
         //RIGHT
-        if (grid.GetValue(x + 1, y) != null && grid.GetValue(x + 1, y).Equals(this) && !grid.GetValue(x + 1, y).check)
+        if (right != null && !right.exploded && right.Equals(this) && !right.check)
         {
-            grid.GetValue(x + 1, y).CheckNeighbours(ref grid, ref list);
+            grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
         } 
         //LEFT
-        if (grid.GetValue(x - 1, y) != null && grid.GetValue(x - 1, y).Equals(this) && !grid.GetValue(x - 1, y).check)   
+        if (left != null && !left.exploded && left.Equals(this) && !left.check)   
         {
-            grid.GetValue(x - 1, y).CheckNeighbours(ref grid, ref list);
+            grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
         } 
         //UP
-        if (grid.GetValue(x , y+1) != null && grid.GetValue(x, y+1).Equals(this) && !grid.GetValue(x , y+1).check)    
+        if (up != null && !up.exploded && up.Equals(this) && !up.check)    
         {
-            grid.GetValue(x, y+1).CheckNeighbours( ref grid, ref list);
+            grid.GetValue(x, y+1).CheckNeighbours(grid, list);
         }
         //DOWN
-        if (grid.GetValue(x, y-1) != null && grid.GetValue(x, y-1).Equals(this) && !grid.GetValue(x, y-1).check)    
+        if (down != null && !down.exploded && down.Equals(this) && !down.check)    
         {
-            grid.GetValue(x , y-1).CheckNeighbours(ref grid,ref list);
+            grid.GetValue(x , y-1).CheckNeighbours(grid, list);
         }
-        list.Add(this);
+        list.AddLast(this);
     }
 
     public bool FallCoroutine(ref Grid<Piece> grid, float fallSpeed, PieceController pieceController)
@@ -46,6 +54,7 @@ public abstract class Piece : MonoBehaviour
         if ((grid.GetValue(x,y-1) == null || grid.GetValue(x,y-1) != null && !grid.GetValue(x,y-1).fallen) && grid.IsInBoundsNoHeight(x,y-1))
         {
             fallen = false;
+            justFallen = true;
             pieceController.AddToPieceNumber(this, -1);
             StartCoroutine(DoFall(grid, fallSpeed, pieceController));
             return false;
@@ -77,6 +86,7 @@ public abstract class Piece : MonoBehaviour
             transform.Translate(Vector3.down * (fallSpeed * Time.deltaTime));
             return false;
         }
+        justFallen = true;
         fallen = true;
 
         if (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
@@ -99,7 +109,8 @@ public abstract class Piece : MonoBehaviour
         return transform.position - transform.localScale / 2;
     }
     
-    public abstract void Explode(ref Grid<Piece> grid);
+    public abstract void Explode(Grid<Piece> grid);
+    public abstract IEnumerator Explosion(Grid<Piece> grid);
     public abstract bool Equals(Piece piece);
     
 }

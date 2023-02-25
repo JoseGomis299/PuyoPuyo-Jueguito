@@ -9,15 +9,18 @@ public class PieceController : MonoBehaviour
     [Header("Grid stats")]
    [SerializeField] private Piece[] availablePieces; 
    [SerializeField] private float fallSpeed = 5;
-   [SerializeField] private Vector3 initialPos;
+   [HideInInspector] public int[] piecesNumbers;
+
+   [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
    [SerializeField] private float cellSize = 1;
+   [SerializeField] private Vector3 initialPos;
 
    [Header("Key Binds")]
    [SerializeField] private KeyCode moveRight = KeyCode.D;
    [SerializeField] private KeyCode moveLeft = KeyCode.A;
    [SerializeField] private KeyCode moveDown = KeyCode.S;
-   [SerializeField] private KeyCode rotateRight = KeyCode.E;
+   [SerializeField] private KeyCode rotateRight = KeyCode.W;
    [SerializeField] private KeyCode rotateLeft = KeyCode.Q;
 
    [Header("Controls")] 
@@ -28,14 +31,18 @@ public class PieceController : MonoBehaviour
    [SerializeField] private float fallSpeedBoost = 2f;
 
    private Block currentBlock;
-   public int[] piecesNumbers;
    private int piecesNumber;
    private Grid<Piece> _grid;
    private bool stopPlacing;
    
+   private LinkedList<Piece> neighbours;
+   private LinkedList<Piece> pieces;
+
    private void Awake()
    {
        piecesNumber = 0;
+       neighbours = new LinkedList<Piece>();
+       pieces = new LinkedList<Piece>();
        piecesNumbers = new int[availablePieces.Length];
       _grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, initialPos);
       GenerateBlock();
@@ -96,7 +103,7 @@ public class PieceController : MonoBehaviour
        }
    }
 
-   public void MakeAllFall()
+   private void MakeAllFall()
    {
        for (int y = 0; y < _grid.GetHeight(); y++)
        {
@@ -133,92 +140,119 @@ public class PieceController : MonoBehaviour
     private IEnumerator _SetPiecesValue()
     {
         stopPlacing = true;
+        GetActivePieces();
 
-        var pieces = GetActivePieces();
-
-        for (int i = 0; i < pieces.Length; i++)
+        foreach (var piece in pieces)
         {
-            var list = new List<Piece>();
-          
-            //check neighbours
-            if(pieces[i] != null) pieces[i].CheckNeighbours(ref _grid, ref list);
-            //reset checks
-            foreach (var piece in pieces)
+            if (piece == null || piece.exploded) continue;
+            neighbours.Clear();
+            
+            piece.justFallen = false;
+            piece.CheckNeighbours(_grid, neighbours);
+
+            if (neighbours.Count >= 4)
             {
-                if(piece != null) piece.check = false;
-            }
-            if (list.Count >= 4)
-            {
-                foreach (var p in list) {p.GetComponent<SpriteRenderer>().color = Color.white;}
-                yield return new WaitForSeconds(0.1f);
-                foreach (var p in list)
+                foreach (var p in neighbours)
                 {
                     AddToPieceNumber(p, -1);
-                    p.Explode(ref _grid);
+                    p.Explode(_grid);
                 }
-                i = -1;
             }
-            pieces = GetActivePieces();
+            else
+            {
+                foreach (var p in neighbours)
+                {
+                    p.check = false;
+                }
+            }
         }
-
+        
+        //Wait until all have exploded
+        yield return new WaitUntil(() =>
+        {
+            bool allExploded = true;
+            foreach (var piece in pieces)
+            {
+                if(piece == null) continue; 
+                if(piece.exploded) allExploded = false;
+            }
+            return allExploded;
+        } );
+        
+        GetAllPieces();
         MakeAllFall();
+        
         //Wait until all have landed again
         yield return new WaitUntil(() =>
         {
-            bool res = true;
             foreach (var piece in pieces)
             {
-                if (piece != null && !piece.fallen) res = false;
+                if(piece == null) continue; 
+                if (!piece.fallen)
+                {
+                    return false;
+                }
             }
-
-            return res;
+            return true;
         } );
         
-        //reset checks
-        // foreach (var piece in pieces)
-        // {
-        //     if(piece != null) piece.check = false;
-        // }
         //If there it is a combo start again
-        bool stop = false;
-        
+        bool startAgain = false;
+        GetActivePieces();
         foreach (var piece in pieces)
         {
-            if (piece == null) continue;
+            if (piece == null || piece.exploded) continue;
             
-            var list = new List<Piece>();
-            piece.CheckNeighbours(ref _grid, ref list);
+            neighbours.Clear();
+            piece.CheckNeighbours( _grid,  neighbours);
+
+            foreach (var p in neighbours)
+            {
+                p.check = false;
+            }
             
-            if (list.Count < 4) continue;
+            if (neighbours.Count < 4) continue;
             
-            stop = true;
+            startAgain = true;
             break;
         }
-        stopPlacing = stop;
-        if (stop) StartCoroutine(_SetPiecesValue());
+
+        stopPlacing = startAgain;
+        if (startAgain) StartCoroutine(_SetPiecesValue());
         yield return null;
     }
 
-    private Piece[] GetActivePieces()
+    private void GetActivePieces()
     {
-        Piece[] pieces = new Piece[piecesNumber];
-        int n = 0;
+        pieces.Clear();
 
         for (int x = 0; x < _grid.GetWidth(); x++)
         {
             for (int y = 0; y < _grid.GetHeight(); y++)
             {
-                if (_grid.GetValue(x, y) != null)
+                if (_grid.GetValue(x, y) != null && !_grid.GetValue(x, y).exploded && _grid.GetValue(x, y).justFallen)
                 {
-                    pieces[n] = _grid.GetValue(x, y);
-                    n++;
+                    pieces.AddLast(_grid.GetValue(x, y));
                 }
             }
         }
-
-        return pieces;
     }
 
+    private void GetAllPieces()
+    { 
+        pieces.Clear();
+        
+        for (int x = 0; x < _grid.GetWidth(); x++)
+        {
+            for (int y = 0; y < _grid.GetHeight(); y++)
+            {
+                if (_grid.GetValue(x, y) != null && !_grid.GetValue(x, y).exploded)
+                {
+                    pieces.AddLast(_grid.GetValue(x, y));
+                }
+            }
+        }
+    }
     public void CleanStage()
     {
         for (int x = 0; x < _grid.GetWidth(); x++)

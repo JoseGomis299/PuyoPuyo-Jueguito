@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Block
 {
-    private List<Piece> pieceList;
+    private Piece[] pieceList;
     private Grid<Piece> _grid;
     
     private int _rotation;
@@ -17,11 +17,12 @@ public class Block
         _pieceController = pieceController;
         _grid = grid;
         _rotation = 0;
-        pieceList = new List<Piece>() { piece1, piece2 };
+        pieceList = new Piece[] { piece1, piece2 };
     }
 
     public void Rotate(int rotation)
     {
+        if(pieceList[0] == null || pieceList[1] == null) return;
         if(pieceList[0].fallen || pieceList[1].fallen) return;
         
         var newRotation = _rotation + rotation;
@@ -58,7 +59,7 @@ public class Block
         bool move = true;
         foreach (var piece in pieceList)
         {
-            if(piece.fallen) continue;
+            if(piece == null || piece.fallen) continue;
             
             var pieceBottom = new Vector3(piece.transform.position.x, piece.transform.position.y - piece.transform.localScale.y / 2,piece.transform.position.z);
             _grid.GetXY(pieceBottom, out var x, out var y);
@@ -68,7 +69,7 @@ public class Block
         if(!move)return;
         foreach (var piece in pieceList)
         {
-            if(piece.fallen) continue;
+            if(piece == null || piece.fallen) continue;
             
             _grid.GetXY(piece.transform.position, out var x, out var y);
             piece.transform.position = new Vector3(_grid.GetCellCenter(x+direction, y).x, piece.transform.position.y);
@@ -77,7 +78,7 @@ public class Block
     }
     public void SetPosition(int x, int y)
     {
-        for (int i = 0; i < pieceList.Count; i++)
+        for (int i = 0; i < pieceList.Length; i++)
         {
             pieceList[i].transform.position = _grid.GetCellCenter(x, y + i);
         }
@@ -85,6 +86,6 @@ public class Block
 
     public Piece[] GetPieces()
     {
-        return new Piece[] { pieceList[0], pieceList[1] };
+        return pieceList;
     }
 }
