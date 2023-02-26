@@ -10,6 +10,7 @@ public abstract class Piece : MonoBehaviour
     public bool justFallen;
     public bool exploded { get; protected set; }
 
+
     
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
@@ -103,11 +104,7 @@ public abstract class Piece : MonoBehaviour
         pieceController.AddToPieceNumber(this, 1);
         return true;
     }
-
-    public Vector3 GetRealPos()
-    {
-        return transform.position - transform.localScale / 2;
-    }
+    
     
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);

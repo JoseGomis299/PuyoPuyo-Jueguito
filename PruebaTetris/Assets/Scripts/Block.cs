@@ -76,11 +76,22 @@ public class Block
         }
 
     }
-    public void SetPosition(int x, int y)
+    public void SetPositionInGrid(int x, int y)
     {
         for (int i = 0; i < pieceList.Length; i++)
         {
+            pieceList[i].transform.localScale = Vector3.one;
             pieceList[i].transform.position = _grid.GetCellCenter(x, y + i);
+        }
+    }
+    
+    public void SetPosition(Vector3 position)
+    {
+        for (int i = 0; i < pieceList.Length; i++)
+        {
+            pieceList[i].transform.localScale = Vector3.one*0.75f;
+            position.y += pieceList[i].transform.localScale.y*i;
+            pieceList[i].transform.position = position;
         }
     }
 

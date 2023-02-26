@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
 public class PieceController : MonoBehaviour
@@ -22,6 +23,7 @@ public class PieceController : MonoBehaviour
    [SerializeField] private KeyCode moveDown = KeyCode.S;
    [SerializeField] private KeyCode rotateRight = KeyCode.W;
    [SerializeField] private KeyCode rotateLeft = KeyCode.Q;
+   [SerializeField] private KeyCode hold = KeyCode.Space;
 
    [Header("Controls")] 
    [SerializeField] private float moveCooldown = 0.1f;
@@ -31,16 +33,20 @@ public class PieceController : MonoBehaviour
    [SerializeField] private float fallSpeedBoost = 2f;
 
    private Block currentBlock;
-   private int piecesNumber;
+   private Block holdBlock;
+   [SerializeField] private Transform holdTransform;
+   private bool _held;
+   private Block nextBlock;
+   [SerializeField] private Transform nextTransform;
+
    private Grid<Piece> _grid;
    private bool stopPlacing;
-   
+
    private LinkedList<Piece> neighbours;
    private LinkedList<Piece> pieces;
 
    private void Awake()
    {
-       piecesNumber = 0;
        neighbours = new LinkedList<Piece>();
        pieces = new LinkedList<Piece>();
        piecesNumbers = new int[availablePieces.Length];
@@ -50,10 +56,21 @@ public class PieceController : MonoBehaviour
 
    public void GenerateBlock()
    {
-      currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-         Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+       if (nextBlock == null)
+       {
+           currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+               Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+       }
+       else
+       {
+           currentBlock = nextBlock;
+       } 
+       nextBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+           Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
       
-      currentBlock.SetPosition(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+      currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+      nextBlock.SetPosition(nextTransform.position);
+      _held = false;
    }
 
    private void Update()
@@ -100,6 +117,22 @@ public class PieceController : MonoBehaviour
        if (Input.GetKeyUp(moveDown))
        {
            fallSpeed /= fallSpeedBoost;
+       }
+
+       if (Input.GetKeyDown(hold) && !currentBlock.fallen && !_held)
+       {
+           if (holdBlock == null)
+           {
+               holdBlock = currentBlock;
+               GenerateBlock();
+           }
+           else
+           {
+               (holdBlock, currentBlock) = (currentBlock, holdBlock);
+               currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+           }
+           holdBlock.SetPosition(holdTransform.position);
+           _held = true;
        }
    }
 
@@ -237,7 +270,6 @@ public class PieceController : MonoBehaviour
             }
         }
     }
-
     private void GetAllPieces()
     { 
         pieces.Clear();
@@ -270,7 +302,6 @@ public class PieceController : MonoBehaviour
         {
             piecesNumbers[i] = 0;
         }
-        piecesNumber = 0;
     }
     public void AddToPieceNumber(Piece piece, int value)
     {
@@ -281,7 +312,5 @@ public class PieceController : MonoBehaviour
             piecesNumbers[i] += value;
             break;
         }
-
-        piecesNumber += value;
     }
 }
