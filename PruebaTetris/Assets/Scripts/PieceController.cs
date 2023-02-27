@@ -153,6 +153,10 @@ public class PieceController : MonoBehaviour
 
        if (Input.GetKeyDown(instantDown))
        {
+           if (currentBlock.GetPieces()[1].rotating)
+           {
+               currentBlock.GetPieces()[1].ForceRotation(_grid, currentBlock.rotation);
+           }
            for (int i = 0; i < currentBlock.GetPieces().Length; i++)
            {
                var position = CalculateFinalPiecePosition(currentBlock.GetPieces()[i].transform.position);

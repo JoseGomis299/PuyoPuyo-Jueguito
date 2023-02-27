@@ -137,6 +137,22 @@ public abstract class Piece : MonoBehaviour
         if(!rotating)StartCoroutine(DoRotation(grid, finalRotation, rotation));
     }
 
+    public void ForceRotation(Grid<Piece> grid, float finalRotation)
+    {
+        StopAllCoroutines();
+        finalRotation *=  Mathf.Deg2Rad;
+
+        var targetX = Mathf.Sin(finalRotation);
+        var targetY = Mathf.Cos(finalRotation);
+        
+        transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+        
+        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
+        {
+            _block.Move(new Vector2(-targetX, -targetY));
+        }
+    }
+
     private IEnumerator DoRotation(Grid<Piece> grid, float finalRotation, float rotation)
     {
         rotating = true;
