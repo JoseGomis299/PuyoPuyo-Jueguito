@@ -159,6 +159,7 @@ public class PieceController : MonoBehaviour
            }
            for (int i = 0; i < currentBlock.GetPieces().Length; i++)
            {
+               if(currentBlock.GetPieces()[i].fallen) return;
                var position = CalculateFinalPiecePosition(currentBlock.GetPieces()[i].transform.position);
                switch (currentBlock.rotation)
                {
