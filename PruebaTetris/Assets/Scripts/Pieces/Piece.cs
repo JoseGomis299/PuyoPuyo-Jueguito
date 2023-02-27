@@ -10,7 +10,19 @@ public abstract class Piece : MonoBehaviour
     public bool justFallen;
     public bool exploded { get; protected set; }
 
+    private Block _block;
+    private bool _advisedFromFalling;
+    public bool doNotSetTime;
 
+    public void SetBlockReference(Block block)
+    {
+        _block = block;
+    }
+    
+    public void SetAdvice(bool value)
+    {
+        _advisedFromFalling = value;
+    }
     
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
@@ -45,7 +57,7 @@ public abstract class Piece : MonoBehaviour
         list.AddLast(this);
     }
 
-    public bool FallCoroutine(ref Grid<Piece> grid, float fallSpeed, PieceController pieceController)
+    public bool FallCoroutine(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
         var movedPiecePosition = new Vector3(transform.position.x, transform.position.y+ transform.position.z) + Vector3.down * (fallSpeed * Time.deltaTime);
         check = false;
@@ -56,6 +68,7 @@ public abstract class Piece : MonoBehaviour
         {
             fallen = false;
             justFallen = true;
+            _advisedFromFalling = true;
             pieceController.AddToPieceNumber(this, -1);
             StartCoroutine(DoFall(grid, fallSpeed, pieceController));
             return false;
@@ -67,18 +80,15 @@ public abstract class Piece : MonoBehaviour
     private IEnumerator DoFall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
         yield return null;
-        while (!Fall(ref grid, fallSpeed, pieceController))
+        while (!Fall(grid, fallSpeed*3, pieceController))
         {
             yield return null;
         }
     }
 
-    public bool Fall(ref Grid<Piece> grid, float fallSpeed, PieceController pieceController)
+    public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
-        if (fallen) return true;
-        
-        var pieceTop = new Vector3(transform.position.x, transform.position.y + (transform.localScale.y / 2), transform.position.z); 
-        var movedPiecePosition = pieceTop + Vector3.down * (fallSpeed * Time.deltaTime);
+        if (fallen || _block.stopFalling) return true;
         
         grid.GetXY(transform.position, out var x, out var y);
 
@@ -87,6 +97,21 @@ public abstract class Piece : MonoBehaviour
             transform.Translate(Vector3.down * (fallSpeed * Time.deltaTime));
             return false;
         }
+
+        if (!_advisedFromFalling)
+        {
+            _block.stopFalling = true;
+            if(!doNotSetTime)_block.lastFallenTime = Time.time;
+            doNotSetTime = true;
+            foreach (var piece in _block.GetPieces())
+            {
+                if(piece == null) continue;
+                piece.SetAdvice(true);
+            }
+
+            return false;
+        }
+
         justFallen = true;
         fallen = true;
 
@@ -104,8 +129,7 @@ public abstract class Piece : MonoBehaviour
         pieceController.AddToPieceNumber(this, 1);
         return true;
     }
-    
-    
+
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);
     public abstract bool Equals(Piece piece);
