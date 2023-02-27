@@ -14,6 +14,8 @@ public abstract class Piece : MonoBehaviour
     private bool _advisedFromFalling;
     public bool doNotSetTime;
 
+    public bool rotating{ get; protected set; }
+
     public void SetBlockReference(Block block)
     {
         _block = block;
@@ -130,6 +132,50 @@ public abstract class Piece : MonoBehaviour
         return true;
     }
 
+    public void Rotate(Grid<Piece> grid, float finalRotation, float rotation)
+    {
+        if(!rotating)StartCoroutine(DoRotation(grid, finalRotation, rotation));
+    }
+
+    private IEnumerator DoRotation(Grid<Piece> grid, float finalRotation, float rotation)
+    {
+        rotating = true;
+        
+        var currentRotation = finalRotation-rotation;
+        currentRotation *= Mathf.Deg2Rad;
+        finalRotation *=  Mathf.Deg2Rad;
+
+        var x = Mathf.Sin(currentRotation);
+        var y = Mathf.Cos(currentRotation);
+
+        var targetX = Mathf.Sin(finalRotation);
+        var targetY = Mathf.Cos(finalRotation);
+        
+        while (Math.Abs(x - targetX) > 0.0001f && Math.Abs(y - targetY) > 0.0001f)
+        {
+            Vector3 center = _block.GetPieces()[0].transform.position;
+            currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 30);
+            x = Mathf.Sin(currentRotation);
+            y = Mathf.Cos(currentRotation);
+            var finalPos = center;
+            finalPos.x += x;
+            finalPos.y += y;
+            transform.position = finalPos;
+            yield return null;
+        }
+
+        if (fallen) transform.position = grid.GetCellCenter(transform.position);
+        else
+        {
+            transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+        }
+        
+        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
+        {
+            _block.Move(new Vector2(-targetX, -targetY));
+        }
+        rotating = false;
+    }
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);
     public abstract bool Equals(Piece piece);

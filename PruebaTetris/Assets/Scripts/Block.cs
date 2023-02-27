@@ -21,6 +21,7 @@ public class Block
         _grid = grid;
         rotation = 0;
         pieceList = new Piece[] { piece1, piece2 };
+
         foreach (var piece in pieceList)
         {
             piece.SetBlockReference(this);
@@ -30,8 +31,8 @@ public class Block
     public void Rotate(int rotation)
     {
         if(pieceList[0] == null || pieceList[1] == null) return;
-        if(pieceList[0].fallen || pieceList[1].fallen) return;
-
+        if(pieceList[0].fallen || pieceList[1].fallen || pieceList[1].rotating) return;
+        
         var newRotation = this.rotation + rotation;
         if (newRotation >= 360) newRotation -= 360;
         else if (newRotation < 0) newRotation += 360;
@@ -42,7 +43,7 @@ public class Block
         var rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
         _grid.GetXY(rotatedPosition, out var x, out var y);
         
-        if (!_grid.IsInBounds(x, y) || _grid.GetValue(x, y) != null)
+        if (!_grid.IsInBoundsNoHeight(x, y) || _grid.GetValue(x, y) != null)
         {
             if(!MoveForRotation(new Vector2(-xFactor, -yFactor))) return;
             rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
@@ -54,7 +55,7 @@ public class Block
             ResetPiecesAdvice(false);
         }
         this.rotation = newRotation;
-        pieceList[1].transform.position = rotatedPosition;
+        pieceList[1].Rotate(_grid,newRotation, rotation);
     }
     
     public void Fall(float fallSpeed)

@@ -1335,7 +1335,7 @@ MonoBehaviour:
   hold: 102
   instantDown: 32
   moveCooldown: 0.15
-  rotationCooldown: 0.15
+  rotationCooldown: 0
   fallSpeedBoost: 2
   holdTransform: {fileID: 702830336}
   nextTransforms:
