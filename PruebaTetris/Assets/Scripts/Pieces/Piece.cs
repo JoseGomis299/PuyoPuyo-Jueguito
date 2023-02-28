@@ -167,10 +167,10 @@ public abstract class Piece : MonoBehaviour
         var targetX = Mathf.Sin(finalRotation);
         var targetY = Mathf.Cos(finalRotation);
         
-        while (Math.Abs(x - targetX) > 0.0001f && Math.Abs(y - targetY) > 0.0001f)
+        while (Math.Abs(x - targetX) > 0.01f && Math.Abs(y - targetY) > 0.01f)
         {
             Vector3 center = _block.GetPieces()[0].transform.position;
-            currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 30);
+            currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 15);
             x = Mathf.Sin(currentRotation);
             y = Mathf.Cos(currentRotation);
             var finalPos = center;
