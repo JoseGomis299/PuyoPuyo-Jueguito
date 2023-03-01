@@ -15,6 +15,7 @@ public abstract class Piece : MonoBehaviour
     public bool doNotSetTime;
 
     public bool rotating{ get; protected set; }
+    private Vector3 _finalPos;
 
     public void SetBlockReference(Block block)
     {
@@ -119,7 +120,7 @@ public abstract class Piece : MonoBehaviour
 
         if (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
-        
+
         if (y >= grid.GetHeight())
         {
             pieceController.CleanStage();
@@ -128,6 +129,7 @@ public abstract class Piece : MonoBehaviour
         }
         
         grid.SetValue(x,y, this);
+        _finalPos =  grid.GetCellCenter(x, y);
         pieceController.AddToPieceNumber(this, 1);
         return true;
     }
@@ -180,15 +182,15 @@ public abstract class Piece : MonoBehaviour
             yield return null;
         }
 
-        if (fallen) transform.position = grid.GetCellCenter(transform.position);
-        else
-        {
-            transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
-        }
-        
         if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
         {
             _block.Move(new Vector2(-targetX, -targetY));
+        }
+        
+        if (fallen) transform.position = _finalPos;
+        else
+        {
+            transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
         }
         rotating = false;
     }
