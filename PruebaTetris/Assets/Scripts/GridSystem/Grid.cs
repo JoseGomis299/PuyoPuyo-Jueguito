@@ -7,7 +7,7 @@ public class Grid<TGridObject>
         private int height;
         private float cellSize;
         private TGridObject[,] gridArray;
-        private Vector3 originPosition;
+        public Vector3 originPosition { get; private set;}
 
         public Grid(int width, int height, float cellSize, Vector3 originPosition)
         {

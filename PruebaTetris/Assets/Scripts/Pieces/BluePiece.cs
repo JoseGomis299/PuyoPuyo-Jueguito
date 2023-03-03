@@ -15,7 +15,8 @@ public class BluePiece : Piece
     {
         GetComponent<SpriteRenderer>().color = Color.white;
         yield return new WaitForSeconds(0.15f);
-        Destroy(gameObject);
+        if(IsHost || IsClient) DespawnPieceServerRpc();
+        else Destroy(gameObject);
     }
 
     public override bool Equals(Piece piece)

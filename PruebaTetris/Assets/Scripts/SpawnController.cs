@@ -25,7 +25,7 @@ public class SpawnController : MonoBehaviour
         playerCount--;
     }
 
-    public int GetPlayerID()
+    public int SetPlayerID()
     {
         for(int i = 0; i<_playerIDs.Length; i++)
         {

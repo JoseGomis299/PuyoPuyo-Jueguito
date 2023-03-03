@@ -1,16 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public abstract class Piece : MonoBehaviour
+public abstract class Piece : NetworkBehaviour
 {
     public bool check;
     public bool fallen { get; private set; }
     public bool justFallen;
     public bool exploded { get; protected set; }
 
-    private Block _block;
+    public Block block{ get; private set; }
     private bool _advisedFromFalling;
     public bool doNotSetTime;
 
@@ -19,7 +20,7 @@ public abstract class Piece : MonoBehaviour
 
     public void SetBlockReference(Block block)
     {
-        _block = block;
+        this.block = block;
     }
     
     public void SetAdvice(bool value)
@@ -91,7 +92,7 @@ public abstract class Piece : MonoBehaviour
 
     public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
-        if (fallen || _block.stopFalling) return true;
+        if (fallen || block.stopFalling) return true;
         
         grid.GetXY(transform.position, out var x, out var y);
 
@@ -103,10 +104,10 @@ public abstract class Piece : MonoBehaviour
 
         if (!_advisedFromFalling)
         {
-            _block.stopFalling = true;
-            if(!doNotSetTime)_block.lastFallenTime = Time.time;
+            block.stopFalling = true;
+            if(!doNotSetTime)block.lastFallenTime = Time.time;
             doNotSetTime = true;
-            foreach (var piece in _block.GetPieces())
+            foreach (var piece in block.GetPieces())
             {
                 if(piece == null) continue;
                 piece.SetAdvice(true);
@@ -147,11 +148,11 @@ public abstract class Piece : MonoBehaviour
         var targetX = Mathf.Sin(finalRotation);
         var targetY = Mathf.Cos(finalRotation);
         
-        transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+        transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
         
         if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
         {
-            _block.Move(new Vector2(-targetX, -targetY));
+            block.Move(new Vector2(-targetX, -targetY));
         }
     }
 
@@ -171,7 +172,7 @@ public abstract class Piece : MonoBehaviour
         
         while (Math.Abs(x - targetX) > 0.01f && Math.Abs(y - targetY) > 0.01f)
         {
-            Vector3 center = _block.GetPieces()[0].transform.position;
+            Vector3 center = block.GetPieces()[0].transform.position;
             currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 15);
             x = Mathf.Sin(currentRotation);
             y = Mathf.Cos(currentRotation);
@@ -184,18 +185,25 @@ public abstract class Piece : MonoBehaviour
 
         if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
         {
-            _block.Move(new Vector2(-targetX, -targetY));
+            block.Move(new Vector2(-targetX, -targetY));
         }
         
         if (fallen) transform.position = _finalPos;
         else
         {
-            transform.position = _block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+            transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
         }
         rotating = false;
     }
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);
     public abstract bool Equals(Piece piece);
-    
+
+    [ServerRpc]
+    protected void DespawnPieceServerRpc()
+    {
+        GetComponent<NetworkObject>().Despawn();
+        Destroy(gameObject);
+    }
+
 }
