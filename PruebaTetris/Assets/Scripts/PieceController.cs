@@ -291,11 +291,15 @@ public class PieceController : NetworkBehaviour
         }
 
         _stopPlacing = startAgain;
+        //combo++
         if (startAgain) StartCoroutine(_SetPiecesValue());
         else
         {
+            //hacer lo que tenga que hacer el combo
+            
             if(!_isOnline)GenerateBlock();
             else OnlineBlockGeneration();
+            //combo = 0
         }
         yield return null;
     }

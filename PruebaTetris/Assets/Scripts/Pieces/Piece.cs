@@ -30,6 +30,8 @@ public abstract class Piece : NetworkBehaviour
     
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
+        //Si soy basura return
+        
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
         
@@ -38,24 +40,34 @@ public abstract class Piece : NetworkBehaviour
         Piece up = grid.GetValue(x, y+1);
         Piece down = grid.GetValue(x, y-1);
         
+        //Desactivar todos los prefabs
+        
         //RIGHT
         if (right != null && !right.exploded && right.Equals(this) && !right.check)
         {
+            //si es basura y no está en la lista de basura añadirla
+            //activar prefab derecha
             grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
         } 
         //LEFT
         if (left != null && !left.exploded && left.Equals(this) && !left.check)   
         {
+            //si es basura y no está en la lista de basura añadirla
+            //activar prefab izquierda
             grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
         } 
         //UP
         if (up != null && !up.exploded && up.Equals(this) && !up.check)    
         {
+            //si es basura y no está en la lista de basura añadirla
+            //activar prefab arriba
             grid.GetValue(x, y+1).CheckNeighbours(grid, list);
         }
         //DOWN
         if (down != null && !down.exploded && down.Equals(this) && !down.check)    
         {
+            //si es basura y no está en la lista de basura añadirla
+            //activar prefab abajo
             grid.GetValue(x , y-1).CheckNeighbours(grid, list);
         }
         list.AddLast(this);
