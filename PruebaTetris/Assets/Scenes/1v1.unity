@@ -373,6 +373,7 @@ GameObject:
   - component: {fileID: 376864187}
   - component: {fileID: 376864186}
   - component: {fileID: 376864188}
+  - component: {fileID: 376864189}
   m_Layer: 0
   m_Name: PlayerInputManager
   m_TagString: Untagged
@@ -475,6 +476,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8464c0a991d73334e97c911f20e65c84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 5011858164427353340, guid: 1b14b092329fffb43b87855f50987343, type: 3}
+--- !u!114 &376864189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376864185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2446959514
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &401598208
 GameObject:
   m_ObjectHideFlags: 0
@@ -1572,7 +1590,9 @@ MonoBehaviour:
   piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
-  initialOffset: {x: 0, y: 0, z: 0}
+  test: 0
+  testID: 0
+  testGameObject: {fileID: 0}
 --- !u!114 &748448043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2685,7 +2705,9 @@ MonoBehaviour:
   piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
-  initialOffset: {x: 0, y: 0, z: 0}
+  test: 0
+  testID: 0
+  testGameObject: {fileID: 0}
 --- !u!114 &5011858163446754389
 MonoBehaviour:
   m_ObjectHideFlags: 0

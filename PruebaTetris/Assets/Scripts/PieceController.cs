@@ -24,12 +24,10 @@ public class PieceController : NetworkBehaviour
 
    private InputManager _inputManager;
 
-   private NetworkVariable<BlockData> currentBlockData = new NetworkVariable<BlockData>(default, NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner);
    public Block currentBlock;
    private Block _holdBlock;
    private Transform holdTransform;
    public bool held { get; private set; }
-   private NetworkVariable<BlockData>[] nextBlocksData = new NetworkVariable<BlockData>[]{new NetworkVariable<BlockData>(default, NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner), new NetworkVariable<BlockData>(default, NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner)};
    public Block[] nextBlocks;
    private Transform[] nextTransforms;
 
@@ -44,19 +42,6 @@ public class PieceController : NetworkBehaviour
    public bool test;
    public int testID;
    public GameObject testGameObject;
-
-   
-   public struct BlockData : INetworkSerializable
-   {
-       public int type1;
-       public int type2;
-       
-       public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-       {
-           serializer.SerializeValue(ref type1);
-           serializer.SerializeValue(ref type2);
-       }
-   }
    private void Start()
    {
        _isOnline = IsClient || IsHost;
@@ -68,7 +53,7 @@ public class PieceController : NetworkBehaviour
        InitialPosition();
        _grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
        if (_isOnline && !IsOwner) { return; }
-
+       
        if(!_isOnline)GenerateBlock();
        else GenerateBlockServerRpc(true);
 
@@ -439,12 +424,10 @@ public class PieceController : NetworkBehaviour
         else
         {
             currentBlock = nextBlocks[0];
-            currentBlockData.Value = nextBlocksData[0].Value;
     
             for (int i = 0; i < nextBlocks.Length-1; i++)
             {
                 nextBlocks[i] = nextBlocks[i + 1];
-                nextBlocksData[i].Value = nextBlocksData[i+1].Value;
             }
             nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
 
@@ -494,7 +477,6 @@ public class PieceController : NetworkBehaviour
             nextPieces2[0].TryGet(out  piece0);
             nextPieces2[1].TryGet(out  piece1);
             nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this);
-            Debug.Log("holi "+id);
             currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
             for (int i = 0; i < nextBlocks.Length; i++)
             {
