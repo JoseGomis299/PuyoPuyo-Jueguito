@@ -1158,7 +1158,7 @@ GameObject:
   - component: {fileID: 748448036}
   - component: {fileID: 748448044}
   m_Layer: 0
-  m_Name: GridRight
+  m_Name: Grid1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1177,7 +1177,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &748448036
 MonoBehaviour:
@@ -1586,13 +1586,10 @@ MonoBehaviour:
   - {fileID: 2577315190821988536, guid: b7b23de76994723428630b2eca77687d, type: 3}
   - {fileID: 404894547157812164, guid: 6c87b37bfa017d545b47b7a227f6c1d5, type: 3}
   - {fileID: -2662597353072287166, guid: 4aa2de018ec798a42aa54a5af6ecece4, type: 3}
-  fallSpeed: 7
+  fallSpeed: 50
   piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
-  test: 0
-  testID: 0
-  testGameObject: {fileID: 0}
 --- !u!114 &748448043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1882,7 +1879,7 @@ Transform:
   - {fileID: 1419731913}
   - {fileID: 232226202}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1391111513
 GameObject:
@@ -2701,13 +2698,10 @@ MonoBehaviour:
   - {fileID: 2577315190821988536, guid: b7b23de76994723428630b2eca77687d, type: 3}
   - {fileID: 404894547157812164, guid: 6c87b37bfa017d545b47b7a227f6c1d5, type: 3}
   - {fileID: -2662597353072287166, guid: 4aa2de018ec798a42aa54a5af6ecece4, type: 3}
-  fallSpeed: 7
+  fallSpeed: 20
   piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
-  test: 0
-  testID: 0
-  testGameObject: {fileID: 0}
 --- !u!114 &5011858163446754389
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3111,7 +3105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveCooldown: 0.15
-  rotationCooldown: 0.25
+  rotationCooldown: 0
   fallSpeedBoost: 2
 --- !u!4 &5011858163446754416
 Transform:
@@ -3126,7 +3120,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5011858163446754417
 GameObject:
@@ -3142,9 +3136,9 @@ GameObject:
   - component: {fileID: 5011858163446754389}
   - component: {fileID: 5011858163446754380}
   m_Layer: 0
-  m_Name: GridLeft
+  m_Name: Grid2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0

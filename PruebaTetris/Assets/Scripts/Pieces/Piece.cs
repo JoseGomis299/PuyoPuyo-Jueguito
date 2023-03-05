@@ -106,14 +106,17 @@ public abstract class Piece : NetworkBehaviour
     {
         if (fallen || block.stopFalling) return true;
         
-        grid.GetXY(transform.position, out var x, out var y);
+        grid.GetXY(new Vector3(transform.position.x, transform.position.y+grid.GetCellSize()/2.5f, transform.position.z), out var x, out var y);
 
-        if ((grid.GetValue(x,y-1) == null || grid.GetValue(x,y-1) != null && !grid.GetValue(x,y-1).fallen) && grid.IsInBoundsNoHeight(x,y-1))
+        if (grid.GetValue(x,y-1) == null && grid.IsInBoundsNoHeight(x,y-1))
         {
-            transform.Translate(Vector3.down * (fallSpeed * Time.deltaTime));
+            if (fallSpeed * Time.deltaTime > 1f) transform.Translate(Vector3.down*1f);
+            else transform.Translate(Vector3.down * (fallSpeed * Time.deltaTime));
+            
             return false;
         }
 
+        if (block.GetPieces()[1].rotating || rotating) return false;
         if (!_advisedFromFalling)
         {
             block.stopFalling = true;
@@ -146,7 +149,6 @@ public abstract class Piece : NetworkBehaviour
         pieceController.AddToPieceNumber(this, 1);
         return true;
     }
-
     public void Rotate(Grid<Piece> grid, float finalRotation, float rotation)
     {
         if(!rotating)StartCoroutine(DoRotation(grid, finalRotation, rotation));
@@ -156,13 +158,14 @@ public abstract class Piece : NetworkBehaviour
     {
         StopAllCoroutines();
         finalRotation *=  Mathf.Deg2Rad;
+        grid.GetXY(new Vector3(transform.position.x, transform.position.y+grid.GetCellSize()/2.5f, transform.position.z), out var x, out var y);
 
         var targetX = Mathf.Sin(finalRotation);
         var targetY = Mathf.Cos(finalRotation);
         
         transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
         
-        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
+        if (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x, y) != null)
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
@@ -184,6 +187,7 @@ public abstract class Piece : NetworkBehaviour
         
         while (Math.Abs(x - targetX) > 0.01f && Math.Abs(y - targetY) > 0.01f)
         {
+            if(block.GetPieces()[0] == null) {break;} 
             Vector3 center = block.GetPieces()[0].transform.position;
             currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 15);
             x = Mathf.Sin(currentRotation);
@@ -199,13 +203,31 @@ public abstract class Piece : NetworkBehaviour
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
-        
-        if (fallen) transform.position = _finalPos;
+
+        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
+        {
+            var finalPos = CalculateFinalPosition(grid);
+            transform.position = grid.GetCellCenter(finalPos.x, finalPos.y);
+        }
         else
         {
-            transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+            if(block.GetPieces()[0] != null) transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
         }
+
+        if (fallen) transform.position = _finalPos;
+        
         rotating = false;
+    }
+    
+    private Vector2Int CalculateFinalPosition(Grid<Piece> grid)
+    {
+        grid.GetXY(transform.position, out var x, out var y);
+        for (int i = 0; i < grid.GetHeight(); i++)
+        {
+            if (grid.GetValue(x,i) != null) continue;
+            return new Vector2Int(x, i);
+        }
+        return Vector2Int.zero;
     }
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);

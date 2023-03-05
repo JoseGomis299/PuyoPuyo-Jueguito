@@ -39,9 +39,7 @@ public class PieceController : NetworkBehaviour
 
    private bool _isOnline;
    private bool _doNotGenerate;
-   public bool test;
-   public int testID;
-   public GameObject testGameObject;
+  
    private void Start()
    {
        _isOnline = IsClient || IsHost;
@@ -55,7 +53,7 @@ public class PieceController : NetworkBehaviour
        if (_isOnline && !IsOwner) { return; }
        
        if(!_isOnline)GenerateBlock();
-       else GenerateBlockServerRpc(true);
+       else GenerateBlockServerRpc();
 
    }
 
@@ -210,6 +208,7 @@ public class PieceController : NetworkBehaviour
 
             if (_neighbours.Count >= 4)
             {
+                //sumar puntuación aquí, "_neighbours.Count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
                     AddToPieceNumber(p, -1);
@@ -332,6 +331,12 @@ public class PieceController : NetworkBehaviour
                 }
             }
         }
+
+        foreach (var piece in currentBlock.GetPieces())
+        {
+            Destroy(piece.gameObject);
+        }
+        
         for (int i = 0; i < availablePieces.Length; i++)
         {
             piecesNumbers[i] = 0;
@@ -386,27 +391,19 @@ public class PieceController : NetworkBehaviour
     
     private void OnlineBlockGeneration()
     {
-        if (currentBlock == null)
-        {
-            GenerateBlockServerRpc(true);
-        }
-        else
-        {
-            GenerateBlockServerRpc(false);
-        }
-
+        GenerateBlockServerRpc();
         held = false;
     }
 
     [ServerRpc]
-    private void GenerateBlockServerRpc(bool first, ServerRpcParams serverRpcParams = default)
+    private void GenerateBlockServerRpc(ServerRpcParams serverRpcParams = default)
     {
         var id = serverRpcParams.Receive.SenderClientId;
         if (!NetworkManager.ConnectedClients.ContainsKey(id)) return;
         var pieceController = NetworkManager.ConnectedClients[id].PlayerObject.gameObject.GetComponent<PieceController>();
         pieceController.gameObject.name = "Grid " + id;
 
-        if (first)
+        if (currentBlock == null)
         {
             currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
                 

@@ -334,7 +334,7 @@ public class LobbyManager : NetworkBehaviour {
         {
             try
             {
-              //  if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
+                if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
                 {
                     string relayCode = await Relay.Instance.CreateRelay();
 

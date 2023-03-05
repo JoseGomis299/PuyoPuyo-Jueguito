@@ -10,6 +10,7 @@ public class Block
     
     public int rotation { get; private set; }
     public bool fallen { get; private set; }
+    public bool anyPieceHasFallen { get; private set; }
     private PieceController _pieceController;
     
     public float lastFallenTime;
@@ -30,7 +31,7 @@ public class Block
     public void Rotate(int rotation)
     {
         if(pieceList[0] == null || pieceList[1] == null) return;
-        if(pieceList[0].fallen || pieceList[1].fallen || pieceList[1].rotating) return;
+        if(anyPieceHasFallen || pieceList[1].rotating) return;
         
         var newRotation = this.rotation + rotation;
         if (newRotation >= 360) newRotation -= 360;
@@ -59,9 +60,10 @@ public class Block
     
     public void Fall(float fallSpeed)
     {
+        Debug.Log(fallen);
         if(fallen) return;
         fallen = true;
-        if (stopFalling && Time.time - lastFallenTime >= 0.35f)
+        if (stopFalling && Time.time - lastFallenTime >= 0.55f)
         {
             stopFalling = false;
         }
@@ -70,16 +72,21 @@ public class Block
             fallen = false;
             return;
         }
-        
+
+        var anyHasFallen = false;
         foreach (var piece in pieceList)
         {
             if (piece == null) continue;
             if (piece.fallen)
             {
                 fallSpeed *= 3;
+                anyHasFallen = true;
                 break;
             }
         }
+        
+        anyPieceHasFallen = anyHasFallen;
+        
         foreach (var piece in pieceList)
         {
             if(piece == null) continue;
@@ -104,7 +111,7 @@ public class Block
     public void Move(Vector2 direction)
     {
         if(pieceList[0] == null || pieceList[1] == null) return;
-        if(pieceList[0].fallen || pieceList[1].fallen) return;
+        if(anyPieceHasFallen) return;
         
         bool move = true;
         bool canMoveDown = true;

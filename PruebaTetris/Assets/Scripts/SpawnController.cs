@@ -16,7 +16,7 @@ public class SpawnController : NetworkBehaviour
         else Instance = this;
         _playerIDs = new int[] { -1, -1 };
 
-        NetworkManager.OnClientConnectedCallback += SpawnPlayers;
+       if(NetworkManager != null) NetworkManager.OnClientConnectedCallback += SpawnPlayers;
     }
 
     private void SpawnPlayers(ulong obj)
