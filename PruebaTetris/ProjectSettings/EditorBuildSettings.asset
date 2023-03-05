@@ -5,17 +5,17 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/LobbyOnline.unity
     guid: be8200a558cfff84b8ce074fa6e33558
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/1v1.unity
     guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/1v1(Online).unity
     guid: 5c48c49d8942fa046a0cf86166980f0c
   - enabled: 0
-    path: Assets/Scenes/OnlineLobby.unity
-    guid: 6ba7b006065e0c14b9d311242b6cf3c5
+    path: 
+    guid: 00000000000000000000000000000000
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 9a78d475166cfac44aff5e6025655572, type: 2}

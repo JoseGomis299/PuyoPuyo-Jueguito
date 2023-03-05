@@ -17,10 +17,12 @@ public abstract class Piece : NetworkBehaviour
 
     public bool rotating{ get; protected set; }
     private Vector3 _finalPos;
+    private int _blockIndex;
 
-    public void SetBlockReference(Block block)
+    public void SetBlockReference(Block block, int index)
     {
         this.block = block;
+        _blockIndex = index;
     }
     
     public void SetAdvice(bool value)
@@ -106,19 +108,25 @@ public abstract class Piece : NetworkBehaviour
     {
         if (fallen || block.stopFalling) return true;
         
-        grid.GetXY(new Vector3(transform.position.x, transform.position.y+grid.GetCellSize()/2.5f, transform.position.z), out var x, out var y);
+        grid.GetXY(new Vector3(transform.position.x, transform.position.y-grid.GetCellSize()/2f-(fallSpeed * Time.deltaTime), transform.position.z), out var x, out var y);
+        var nextPos = transform.position + Vector3.down * (fallSpeed * Time.deltaTime);
 
-        if (grid.GetValue(x,y-1) == null && grid.IsInBoundsNoHeight(x,y-1))
+        if (grid.GetValue(x,y) == null && grid.IsInBoundsNoHeight(x,y))
         {
-            if (fallSpeed * Time.deltaTime > 1f) transform.Translate(Vector3.down*1f);
-            else transform.Translate(Vector3.down * (fallSpeed * Time.deltaTime));
-            
-            return false;
+           transform.position = nextPos;
+           return false;
         }
+        
+        while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
+        transform.position = grid.GetCellCenter(x, y);
 
         if (block.GetPieces()[1].rotating || rotating) return false;
         if (!_advisedFromFalling)
         {
+            if (_blockIndex == 0 && block.rotation == 0)
+            {
+                block.GetPieces()[1].transform.position = grid.GetCellCenter(x, y+1);
+            }
             block.stopFalling = true;
             if(!doNotSetTime)block.lastFallenTime = Time.time;
             doNotSetTime = true;
@@ -135,7 +143,7 @@ public abstract class Piece : NetworkBehaviour
         fallen = true;
 
         if (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
-        transform.position = grid.GetCellCenter(x, y);
+       // transform.position = grid.GetCellCenter(x, y);
 
         if (y >= grid.GetHeight())
         {
@@ -185,11 +193,11 @@ public abstract class Piece : NetworkBehaviour
         var targetX = Mathf.Sin(finalRotation);
         var targetY = Mathf.Cos(finalRotation);
         
-        while (Math.Abs(x - targetX) > 0.01f && Math.Abs(y - targetY) > 0.01f)
+        while (Math.Abs(x - targetX) > 0.1f && Math.Abs(y - targetY) > 0.1f)
         {
             if(block.GetPieces()[0] == null) {break;} 
             Vector3 center = block.GetPieces()[0].transform.position;
-            currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 15);
+            currentRotation = Mathf.Lerp(currentRotation, finalRotation, Time.deltaTime * 12.5f);
             x = Mathf.Sin(currentRotation);
             y = Mathf.Cos(currentRotation);
             var finalPos = center;
@@ -206,8 +214,7 @@ public abstract class Piece : NetworkBehaviour
 
         if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
         {
-            var finalPos = CalculateFinalPosition(grid);
-            transform.position = grid.GetCellCenter(finalPos.x, finalPos.y);
+            GoToFinalPosition(grid);
         }
         else
         {
@@ -219,15 +226,18 @@ public abstract class Piece : NetworkBehaviour
         rotating = false;
     }
     
-    private Vector2Int CalculateFinalPosition(Grid<Piece> grid)
+    public void GoToFinalPosition(Grid<Piece> grid)
     {
         grid.GetXY(transform.position, out var x, out var y);
+        
         for (int i = 0; i < grid.GetHeight(); i++)
         {
             if (grid.GetValue(x,i) != null) continue;
-            return new Vector2Int(x, i);
+            y = i;
+            break;
         }
-        return Vector2Int.zero;
+
+        transform.position = grid.GetCellCenter(x, y);
     }
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);

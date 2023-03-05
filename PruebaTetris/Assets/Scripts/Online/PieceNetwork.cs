@@ -8,6 +8,10 @@ public class PieceNetwork : NetworkBehaviour
 {
    private NetworkVariable<PieceNetworkData> _netState = new(writePerm: NetworkVariableWritePermission.Owner);
 
+   private void Start()
+   {
+      if (NetworkManager == null) enabled = false;
+   }
    private void Update()
    {
       if (IsOwner)

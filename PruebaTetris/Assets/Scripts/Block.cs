@@ -22,9 +22,9 @@ public class Block
         rotation = 0;
         pieceList = new Piece[] { piece1, piece2 };
 
-        foreach (var piece in pieceList)
+        for (int i = 0; i < pieceList.Length; i++)
         {
-            piece.SetBlockReference(this);
+            pieceList[i].SetBlockReference(this, i);
         }
     }
 
@@ -55,12 +55,12 @@ public class Block
             ResetPiecesAdvice(false);
         }
         this.rotation = newRotation;
-        pieceList[1].Rotate(grid,newRotation, rotation);
+        //pieceList[1].transform.position = rotatedPosition;
+         pieceList[1].Rotate(grid,newRotation, rotation);
     }
     
     public void Fall(float fallSpeed)
     {
-        Debug.Log(fallen);
         if(fallen) return;
         fallen = true;
         if (stopFalling && Time.time - lastFallenTime >= 0.55f)

@@ -92,7 +92,7 @@ public class PieceController : NetworkBehaviour
    private void Update()
    {
        if (_isOnline && !IsOwner) { return; }
-      // if(currentBlock == null) return;
+       if(currentBlock == null) return;
       
        currentBlock.Fall(fallSpeed);
        
