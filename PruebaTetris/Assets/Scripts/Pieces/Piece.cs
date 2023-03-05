@@ -142,9 +142,6 @@ public abstract class Piece : NetworkBehaviour
         justFallen = true;
         fallen = true;
 
-        if (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
-       // transform.position = grid.GetCellCenter(x, y);
-
         if (y >= grid.GetHeight())
         {
             pieceController.CleanStage();
