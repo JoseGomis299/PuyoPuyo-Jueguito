@@ -27,7 +27,7 @@ public class Block
         _resetTime = true;
         for (int i = 0; i < pieceList.Length; i++)
         {
-            pieceList[i].SetBlockReference(this, i);
+            pieceList[i].SetBlockReference(this);
         }
     }
 

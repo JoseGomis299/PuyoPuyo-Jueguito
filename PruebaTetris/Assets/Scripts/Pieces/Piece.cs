@@ -6,14 +6,15 @@ using UnityEngine;
 
 public abstract class Piece : NetworkBehaviour
 {
-    public bool check;
-    public bool fallen;
-    public bool justFallen;
+    [HideInInspector] public bool check;
+    [HideInInspector] public bool fallen;
+    [HideInInspector] public bool justFallen;
     public bool exploded { get; protected set; }
+    [SerializeField] protected GameObject[] unionPrefabs;
 
     public Block block{ get; private set; }
     
-    public void SetBlockReference(Block block, int index)
+    public void SetBlockReference(Block block)
     {
         this.block = block;
     }
@@ -26,31 +27,48 @@ public abstract class Piece : NetworkBehaviour
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
 
-        Piece[] cardinalPieces = {
+        Piece[] cardinalPieces =
+        {
             grid.GetValue(x + 1, y), //RIGHT
             grid.GetValue(x - 1, y), //LEFT
             grid.GetValue(x, y + 1), //UP
-            grid.GetValue(x, y - 1)  //DOWN
+            grid.GetValue(x, y - 1) //DOWN
         };
         
-        //Desactivar todos los prefabs
+        //Desactivar los prefabs de unión
+        // foreach(var prefab in unionPrefabs){
+        //   prefab.SetActive(false);
+        // }
 
-        foreach (var piece in cardinalPieces)
+        for (int i = 0; i < cardinalPieces.Length; i++)
         {
-            if (piece != null && !piece.exploded && !piece.check)
+            if (cardinalPieces[i] != null && !cardinalPieces[i].exploded && !cardinalPieces[i].check)
             {
-                //activar prefab derecha
                 //si es la pieza buscada añadirla a la lista de vecinos
-                if (piece.Equals(this)) piece.CheckNeighbours(grid, list, garbageList);
-                else if (piece is Garbage)
+                if (cardinalPieces[i].Equals(this))
+                {
+                    // switch (i)
+                    // {
+                    //     case 0: unionPrefabs[0].SetActive(true); //ACTIVAR PREFAB DERECHA
+                    //         break;
+                    //     case 1: unionPrefabs[1].SetActive(true); //ACTIVAR PREFAB IZQUIERDA
+                    //         break;
+                    //     case 2: unionPrefabs[2].SetActive(true); //ACTIVAR PREFAB ARRIBA
+                    //         break;
+                    //     case 3: unionPrefabs[3].SetActive(true); //ACTIVAR PREFAB ABAJO
+                    //         break;
+                    // }
+                    cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
+                }
+                else if (cardinalPieces[i] is Garbage)
                 {
                     //si es basura y no está en la lista de basura añadirla
-                    piece.check = true;
-                    garbageList.AddLast(piece);
+                    cardinalPieces[i].check = true;
+                    garbageList.AddLast(cardinalPieces[i]);
                 }
             }
         }
-        
+
         list.AddLast(this);
     }
 
@@ -83,7 +101,7 @@ public abstract class Piece : NetworkBehaviour
 
     public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
-        if (fallen || block.stopFalling) return true;
+        if (fallen) return true;
         
         grid.GetXY(new Vector3(transform.position.x, transform.position.y-grid.GetCellSize()/2f-(fallSpeed * Time.deltaTime), transform.position.z), out var x, out var y);
         var nextPos = transform.position + Vector3.down * (fallSpeed * Time.deltaTime);
