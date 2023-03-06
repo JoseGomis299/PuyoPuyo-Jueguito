@@ -18,48 +18,39 @@ public abstract class Piece : NetworkBehaviour
         this.block = block;
     }
 
-    public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
+    public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list, LinkedList<Piece> garbageList)
     {
         //Si soy basura return
-        
+        if (this is Garbage) return;
+
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
-        
-        Piece right = grid.GetValue(x + 1, y);
-        Piece left = grid.GetValue(x - 1, y);
-        Piece up = grid.GetValue(x, y+1);
-        Piece down = grid.GetValue(x, y-1);
+
+        Piece[] cardinalPieces = {
+            grid.GetValue(x + 1, y), //RIGHT
+            grid.GetValue(x - 1, y), //LEFT
+            grid.GetValue(x, y + 1), //UP
+            grid.GetValue(x, y - 1)  //DOWN
+        };
         
         //Desactivar todos los prefabs
+
+        foreach (var piece in cardinalPieces)
+        {
+            if (piece != null && !piece.exploded && !piece.check)
+            {
+                //activar prefab derecha
+                //si es la pieza buscada añadirla a la lista de vecinos
+                if (piece.Equals(this)) piece.CheckNeighbours(grid, list, garbageList);
+                else if (piece is Garbage)
+                {
+                    //si es basura y no está en la lista de basura añadirla
+                    piece.check = true;
+                    garbageList.AddLast(piece);
+                }
+            }
+        }
         
-        //RIGHT
-        if (right != null && !right.exploded && right.Equals(this) && !right.check)
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab derecha
-            grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
-        } 
-        //LEFT
-        if (left != null && !left.exploded && left.Equals(this) && !left.check)   
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab izquierda
-            grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
-        } 
-        //UP
-        if (up != null && !up.exploded && up.Equals(this) && !up.check)    
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab arriba
-            grid.GetValue(x, y+1).CheckNeighbours(grid, list);
-        }
-        //DOWN
-        if (down != null && !down.exploded && down.Equals(this) && !down.check)    
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab abajo
-            grid.GetValue(x , y-1).CheckNeighbours(grid, list);
-        }
         list.AddLast(this);
     }
 

@@ -6,16 +6,21 @@ public class Garbage : Piece
 {
     public override void Explode(Grid<Piece> grid)
     {
-        throw new System.NotImplementedException();
+        exploded = true;
+        grid.SetValue(transform.position, null);
+        StartCoroutine(Explosion(grid));
     }
 
     public override IEnumerator Explosion(Grid<Piece> grid)
     {
-        throw new System.NotImplementedException();
+        GetComponent<SpriteRenderer>().color = Color.white;
+        yield return new WaitForSeconds(0.25f);
+        if(IsHost || IsClient) DespawnPieceServerRpc();
+        else Destroy(gameObject);
     }
 
     public override bool Equals(Piece piece)
     {
-        throw new System.NotImplementedException();
+        return piece is Garbage;
     }
 }

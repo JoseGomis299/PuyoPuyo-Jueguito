@@ -34,6 +34,7 @@ public class PieceController : NetworkBehaviour
    private bool _stopPlacing;
 
    private LinkedList<Piece> _neighbours;
+   private LinkedList<Piece> _garbage;
    private LinkedList<Piece> _pieces;
 
    private bool _isOnline;
@@ -44,6 +45,7 @@ public class PieceController : NetworkBehaviour
        _isOnline = IsClient || IsHost;
        _neighbours = new LinkedList<Piece>();
        _pieces = new LinkedList<Piece>();
+       _garbage = new LinkedList<Piece>();
        nextBlocks = new Block[2]; 
        _inputManager = GetComponent<InputManager>();
        InitialPosition();
@@ -192,9 +194,10 @@ public class PieceController : NetworkBehaviour
         {
             if (piece == null || piece.exploded) continue;
             _neighbours.Clear();
+            _garbage.Clear();
             
             piece.justFallen = false;
-            piece.CheckNeighbours(_grid, _neighbours);
+            piece.CheckNeighbours(_grid, _neighbours, _garbage);
 
             if (_neighbours.Count >= 4)
             {
@@ -203,10 +206,18 @@ public class PieceController : NetworkBehaviour
                 {
                     p.Explode(_grid);
                 }
+                foreach (var p in _garbage)
+                {
+                    p.Explode(_grid);
+                }
             }
             else
             {
                 foreach (var p in _neighbours)
+                {
+                    p.check = false;
+                }
+                foreach (var p in _garbage)
                 {
                     p.check = false;
                 }
@@ -250,9 +261,14 @@ public class PieceController : NetworkBehaviour
             if (piece == null || piece.exploded) continue;
             
             _neighbours.Clear();
-            piece.CheckNeighbours( _grid,  _neighbours);
+            _garbage.Clear();
+            piece.CheckNeighbours( _grid,  _neighbours, _garbage);
 
             foreach (var p in _neighbours)
+            {
+                p.check = false;
+            }
+            foreach (var p in _garbage)
             {
                 p.check = false;
             }
