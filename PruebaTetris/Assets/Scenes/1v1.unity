@@ -1587,7 +1587,6 @@ MonoBehaviour:
   - {fileID: 404894547157812164, guid: 6c87b37bfa017d545b47b7a227f6c1d5, type: 3}
   - {fileID: -2662597353072287166, guid: 4aa2de018ec798a42aa54a5af6ecece4, type: 3}
   fallSpeed: 10
-  piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
 --- !u!114 &748448043
@@ -1603,7 +1602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveCooldown: 0.15
-  rotationCooldown: 0.25
+  rotationCooldown: 0.2
   fallSpeedBoost: 2
 --- !u!114 &748448044
 MonoBehaviour:
@@ -2698,8 +2697,7 @@ MonoBehaviour:
   - {fileID: 2577315190821988536, guid: b7b23de76994723428630b2eca77687d, type: 3}
   - {fileID: 404894547157812164, guid: 6c87b37bfa017d545b47b7a227f6c1d5, type: 3}
   - {fileID: -2662597353072287166, guid: 4aa2de018ec798a42aa54a5af6ecece4, type: 3}
-  fallSpeed: 20
-  piecesNumbers: 
+  fallSpeed: 10
   gridSize: {x: 6, y: 14}
   cellSize: 1
 --- !u!114 &5011858163446754389
@@ -3105,7 +3103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveCooldown: 0.15
-  rotationCooldown: 0
+  rotationCooldown: 0.2
   fallSpeedBoost: 2
 --- !u!4 &5011858163446754416
 Transform:
@@ -3141,4 +3139,4 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0

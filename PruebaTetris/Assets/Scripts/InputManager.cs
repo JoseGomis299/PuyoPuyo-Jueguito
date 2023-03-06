@@ -174,6 +174,8 @@ public class InputManager : NetworkBehaviour
     #endregion
     public void ManageInput()
     {
+        if(_pieceController.currentBlock == null) return;
+        
         if (_moveDirection.magnitude > 0 && Time.time - _lastMove >= moveCooldown)
         {
             _lastMove = Time.time;

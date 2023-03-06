@@ -7,29 +7,17 @@ using UnityEngine;
 public abstract class Piece : NetworkBehaviour
 {
     public bool check;
-    public bool fallen { get; private set; }
+    public bool fallen;
     public bool justFallen;
     public bool exploded { get; protected set; }
 
     public Block block{ get; private set; }
-    private bool _advisedFromFalling;
-    public bool doNotSetTime;
-
-    public bool rotating{ get; protected set; }
-    private Vector3 _finalPos;
-    private int _blockIndex;
-
+    
     public void SetBlockReference(Block block, int index)
     {
         this.block = block;
-        _blockIndex = index;
     }
-    
-    public void SetAdvice(bool value)
-    {
-        _advisedFromFalling = value;
-    }
-    
+
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
         //Si soy basura return
@@ -86,8 +74,6 @@ public abstract class Piece : NetworkBehaviour
         {
             fallen = false;
             justFallen = true;
-            _advisedFromFalling = true;
-            pieceController.AddToPieceNumber(this, -1);
             StartCoroutine(DoFall(grid, fallSpeed, pieceController));
             return false;
         }
@@ -119,44 +105,25 @@ public abstract class Piece : NetworkBehaviour
         
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
-
-        if (block.GetPieces()[1].rotating || rotating) return false;
-        if (!_advisedFromFalling)
-        {
-            if (_blockIndex == 0 && block.rotation == 0)
-            {
-                block.GetPieces()[1].transform.position = grid.GetCellCenter(x, y+1);
-            }
-            block.stopFalling = true;
-            if(!doNotSetTime)block.lastFallenTime = Time.time;
-            doNotSetTime = true;
-            foreach (var piece in block.GetPieces())
-            {
-                if(piece == null) continue;
-                piece.SetAdvice(true);
-            }
-
-            return false;
-        }
-
+        
         justFallen = true;
         fallen = true;
-
-        if (y >= grid.GetHeight())
-        {
-            pieceController.CleanStage();
-            Destroy(gameObject);
-            return true;
-        }
         
-        grid.SetValue(x,y, this);
-        _finalPos =  grid.GetCellCenter(x, y);
-        pieceController.AddToPieceNumber(this, 1);
+        SetValue(grid, pieceController);
         return true;
     }
+
+    public void SetValue(Grid<Piece> grid, PieceController pieceController)
+    {
+        grid.SetValue(transform.position, this);
+        justFallen = true;
+        fallen = true;
+    }
+
+
     public void Rotate(Grid<Piece> grid, float finalRotation, float rotation)
     {
-        if(!rotating)StartCoroutine(DoRotation(grid, finalRotation, rotation));
+        StartCoroutine(DoRotation(grid, finalRotation, rotation));
     }
 
     public void ForceRotation(Grid<Piece> grid, float finalRotation)
@@ -178,8 +145,6 @@ public abstract class Piece : NetworkBehaviour
 
     private IEnumerator DoRotation(Grid<Piece> grid, float finalRotation, float rotation)
     {
-        rotating = true;
-        
         var currentRotation = finalRotation-rotation;
         currentRotation *= Mathf.Deg2Rad;
         finalRotation *=  Mathf.Deg2Rad;
@@ -208,19 +173,10 @@ public abstract class Piece : NetworkBehaviour
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
-
-        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
-        {
-            GoToFinalPosition(grid);
-        }
-        else
-        {
-            if(block.GetPieces()[0] != null) transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
-        }
-
-        if (fallen) transform.position = _finalPos;
         
-        rotating = false;
+        if(block.GetPieces()[0] != null) transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+        
+        block.rotating = false;
     }
     
     public void GoToFinalPosition(Grid<Piece> grid)

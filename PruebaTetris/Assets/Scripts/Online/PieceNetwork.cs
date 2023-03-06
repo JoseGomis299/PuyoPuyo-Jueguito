@@ -7,13 +7,21 @@ using UnityEngine;
 public class PieceNetwork : NetworkBehaviour
 {
    private NetworkVariable<PieceNetworkData> _netState = new(writePerm: NetworkVariableWritePermission.Owner);
+   private Piece piece;
 
    private void Start()
    {
-      if (NetworkManager == null) enabled = false;
+      if (NetworkManager == null)
+      {
+         enabled = false;
+         return;
+      }
+
+      piece = GetComponent<Piece>();
    }
    private void Update()
    {
+      
       if (IsOwner)
       {
          _netState.Value = new PieceNetworkData()
