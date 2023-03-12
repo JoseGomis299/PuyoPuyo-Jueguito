@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
@@ -127,9 +128,11 @@ public class LobbyManager : NetworkBehaviour {
                     if (!IsLobbyHost())
                     {
                         Relay.Instance.JoinRelay(joinedLobby.Data[KEY_START_GAME].Value);
+                        CreateAbility();
                     }
                     if(IsLobbyHost())
                     {
+                        CreateAbility();
                         await Task.Delay(100);
                         joinedLobby = null;
                         NetworkManager.Singleton.SceneManager.LoadScene("1v1(Online)", LoadSceneMode.Single);
@@ -138,6 +141,16 @@ public class LobbyManager : NetworkBehaviour {
                 }
             }
         }
+    }
+
+    private void CreateAbility()
+    {
+        PlayerCharacter playerCharacter =
+            Enum.Parse<PlayerCharacter>(GetPlayer().Data[KEY_PLAYER_CHARACTER].Value);
+        var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
+        CharacterAbility characterAbility = new CharacterAbility(characterSo.characterBody, characterSo.id);
+        string json = JsonUtility.ToJson(characterAbility, true);
+        File.WriteAllText(Application.persistentDataPath + "/AbilitieDataFile.json", json);
     }
 
     public Lobby GetJoinedLobby() {
@@ -257,7 +270,7 @@ public class LobbyManager : NetworkBehaviour {
 
                 Lobby lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, playerId, options);
                 joinedLobby = lobby;
-
+                
                 OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
             } catch (LobbyServiceException e) {
                 Debug.Log(e);
@@ -336,6 +349,7 @@ public class LobbyManager : NetworkBehaviour {
             {
                 if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
                 {
+                    LobbyUI.Instance.DisablePlayButton();
                     string relayCode = await Relay.Instance.CreateRelay();
 
                     Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions

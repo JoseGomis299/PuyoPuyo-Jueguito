@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Garbage : Piece
 {
+    private int health = 1;
     public override void Explode(Grid<Piece> grid)
     {
+        if(--health > 0) return;
         exploded = true;
         grid.SetValue(transform.position, null);
         StartCoroutine(Explosion(grid));
@@ -17,6 +19,11 @@ public class Garbage : Piece
         yield return new WaitForSeconds(0.25f);
         if(IsHost || IsClient) DespawnPieceServerRpc();
         else Destroy(gameObject);
+    }
+
+    public void SetHealth(int value)
+    {
+        health = value;
     }
 
     public override bool Equals(Piece piece)
