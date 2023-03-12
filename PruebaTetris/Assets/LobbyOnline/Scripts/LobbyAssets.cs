@@ -6,23 +6,23 @@ using UnityEngine.UI;
 public class LobbyAssets : MonoBehaviour {
     public static LobbyAssets Instance { get; private set; }
 
-    [SerializeField] private Sprite KpopSprite;
-    [SerializeField] private Sprite MetalSprite;
-    [SerializeField] private Sprite RapSprite;
-    [SerializeField] private Sprite ReggaetonSprite;
+    [SerializeField] private LobbyCharacterSO KpopSo;
+    [SerializeField] private LobbyCharacterSO MetalSo;
+    [SerializeField] private LobbyCharacterSO RapSo;
+    [SerializeField] private LobbyCharacterSO ReggaetonSo;
 
 
     private void Awake() {
         Instance = this;
     }
 
-    public Sprite GetSprite(LobbyManager.PlayerCharacter playerCharacter) {
+    public LobbyCharacterSO GetSO(LobbyManager.PlayerCharacter playerCharacter) {
         switch (playerCharacter) {
             default:
-            case LobbyManager.PlayerCharacter.Kpop:   return KpopSprite;
-            case LobbyManager.PlayerCharacter.Metal:    return MetalSprite;
-            case LobbyManager.PlayerCharacter.Rap:   return RapSprite;
-            case LobbyManager.PlayerCharacter.Reggaeton:   return ReggaetonSprite;
+            case LobbyManager.PlayerCharacter.Kpop:   return KpopSo;
+            case LobbyManager.PlayerCharacter.Metal:    return MetalSo;
+            case LobbyManager.PlayerCharacter.Rap:   return RapSo;
+            case LobbyManager.PlayerCharacter.Reggaeton:   return ReggaetonSo;
         }
     }
 
