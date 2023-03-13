@@ -164,8 +164,20 @@ public class LobbyManager : NetworkBehaviour
 
     private void CreateAbility()
     {
+        string playerId = AuthenticationService.Instance.PlayerId;
+        Player player = null;
+        
+        foreach (var p in joinedLobby.Players)
+        {
+            if (p.Id.Equals(playerId))
+            {
+                player = p;
+                break;
+            }
+        }
+        
         PlayerCharacter playerCharacter =
-            Enum.Parse<PlayerCharacter>(GetPlayer().Data[KEY_PLAYER_CHARACTER].Value);
+            Enum.Parse<PlayerCharacter>(player.Data[KEY_PLAYER_CHARACTER].Value);
         var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
         CharacterAbilityData characterAbilityData = new CharacterAbilityData(characterSo.characterBody, characterSo.id);
         string json = JsonUtility.ToJson(characterAbilityData, true);
@@ -323,8 +335,9 @@ public class LobbyManager : NetworkBehaviour
     }
 
     public async void QuickJoinLobby() {
-        try {
-            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions();
+        try
+        {
+            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions { Player = GetPlayer() };
 
             Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
             joinedLobby = lobby;

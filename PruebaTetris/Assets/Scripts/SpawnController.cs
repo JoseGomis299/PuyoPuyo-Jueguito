@@ -55,7 +55,7 @@ public class SpawnController : NetworkBehaviour
         
         if (playerTwo)
         {
-            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile2.json");
+            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
         }
         else
         {
@@ -80,7 +80,6 @@ public class SpawnController : NetworkBehaviour
     private void SetAbilityClientRpc(NetworkObjectReference reference)
     {
         reference.TryGet(out var abilityController);
-        if(!abilityController.IsOwner) return;
       
         string json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
         CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json);

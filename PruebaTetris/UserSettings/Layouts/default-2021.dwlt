@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1738.8679
     height: 896.60376
   m_ShowMode: 4
-  m_Title: Project
+  m_Title: Game
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 111
+  controlID: 21
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 200}
   m_MaxSize: {x: 16192, y: 16192}
   vertical: 1
-  controlID: 112
+  controlID: 22
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 100}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
-  controlID: 17
+  controlID: 23
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -189,8 +189,8 @@ MonoBehaviour:
     y: 0
     width: 312.45285
     height: 500.8302
-  m_MinSize: {x: 201, y: 221}
-  m_MaxSize: {x: 4001, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 13}
   m_Panes:
   - {fileID: 13}
@@ -401,21 +401,21 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: c09dffff4abeffff42d0ffff88d0ffffa6d2ffffbed2ffffecd2ffffe8e5ffff2ee6ffff4ce8ffff64e8ffff92e8ffff58e9ffffb6f2ffff34f9ffff20fbffffeeab0000
+      m_ExpandedIDs: c4cdfcff0acefcff2ad0fcff44d0fcff72d0fcffb6defcfffcdefcff1ce1fcff36e1fcff64e1fcff6cf1fcffb2f1fcffd2f3fcffecf3fcff1af4fcffe800fdff2e01fdff4e03fdff6803fdff9603fdff7c0ffdffc20ffdffe211fdfffc11fdff2a12fdff4a1dfdff901dfdffb01ffdffca1ffdfff81ffdff022efdff482efdff6830fdff8230fdffb030fdffbe38fdff0439fdff243bfdff3e3bfdff6c3bfdff184ffdff5e4ffdff7e51fdff9851fdffc651fdff9861fdffde61fdfffe63fdff1864fdff4664fdfffc71fdff4272fdff6274fdff7c74fdffaa74fdffec80fdff3281fdff5283fdff6c83fdff9a83fdff5687fdff9c87fdffbc89fdffd689fdff048afdffc28afdff968efdffee9cfdff349dfdff529ffdff6c9ffdff9a9ffdfff2abfdff38acfdff56aefdff70aefdff9eaefdff78b5fdffb0bbfdfff6bbfdff14befdff2ebefdff5cbefdff8ecdfdff36d4fdff7cd4fdff9ad6fdffb4d6fdffe2d6fdffd0e6fdff16e7fdff34e9fdff4ee9fdff7ce9fdffb6fdfdff0a06feff5006feff6e08feff8808feffb608feffe21dfeff281efeff4620feff6020feff8e20feffce2dfeff142efeff3230feff4c30feff7a30feff7239feffac3ffefff23ffeff1042feff2a42feff5842feff264bfeff6c4bfeff8a4dfeffa44dfeffd24dfeff965afeffcea0feff14a1feff32a3feff4ca3feff7aa3feff60affeff52b6feff98b6feffb6b8feffd0b8fefffeb8feffdac1feff20c2feff3ec4feff58c4feff86c4feffbccbfefff0defeff36dffeff54e1feff6ee1feff9ce1feff82f2feffd6f8feff1cf9feff3afbfeff54fbfeff82fbfeffd203ffff3010ffff7610ffff9412ffffae12ffffdc12ffff5a2dffffa02dffffbe2fffffd82fffff0630ffff1e3effff643effff8240ffff9c40ffffca40ffff8e41ffffa84effff0a5bffff505bffff6e5dffff885dffffb65dfffffa6affff406bffff5e6dffff786dffffa66dffffc077ffffb67efffffc7effff1a81ffff3481ffff6281ffff2a96ffff4e9fffff949fffffb2a1ffffcca1fffffaa1ffff2eaeffff12b5ffff58b5ffff76b7ffff90b7ffffbeb7ffff30bfffff8cdfffffd2dffffff4e1ffff12e2ffff44e2fffffce2ffff00e4ffff74e4ffff20fbfffff4ffffffce6d00002e6e0000506e00006c6e0000409400007e94000084940000e4a1000002a2000038a2000078a2000084d400007ad600007c1c0100ba1c0100c01c01003c280100542801007a280100802801009c280100667a0100287d0100c6090200de090200040a02000a0a0200260a0200c04f020084510200767502003a770200e6980200aa9a0200
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: Grid1
-        m_OriginalName: Grid1
+        m_Name: 
+        m_OriginalName: 
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 45488
+        m_UserData: 0
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 4
+        m_OriginalEventType: 11
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 8}
       m_SearchString: 
@@ -458,8 +458,8 @@ MonoBehaviour:
       floating: 0
       collapsed: 0
       displayed: 1
-      snapOffset: {x: -97.81134, y: -26.26416}
-      snapOffsetDelta: {x: 0, y: 0}
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: -97.81134, y: -26.26416}
       snapCorner: 3
       id: Tool Settings
       index: 0
@@ -480,7 +480,7 @@ MonoBehaviour:
       floating: 0
       collapsed: 0
       displayed: 1
-      snapOffset: {x: 0, y: 25.358492}
+      snapOffset: {x: 0, y: 0}
       snapOffsetDelta: {x: 0, y: 0}
       snapCorner: 0
       id: unity-scene-view-toolbar
@@ -672,9 +672,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 846.2972, y: 293.19852, z: 50.835815}
+    m_Target: {x: 1.8719324, y: 9.411538, z: -0.21932326}
     speed: 2
-    m_Value: {x: 858.9123, y: 292.67947, z: 51.249123}
+    m_Value: {x: 1.8719324, y: 9.411538, z: -0.21932326}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -725,9 +725,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 959.7931
+    m_Target: 20.353302
     speed: 2
-    m_Value: 918.4623
+    m_Value: 20.353302
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -772,8 +772,8 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: -28981.133
-    y: -28450.416
+    x: 0
+    y: 573.283
     width: 1352.9623
     height: 324.77362
   m_ViewDataDictionary: {fileID: 0}
@@ -793,22 +793,22 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Prefabs
+    - Assets/Scripts/ScriptableObjects
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 67
   m_LastFolders:
-  - Assets/Prefabs
+  - Assets/Scripts/ScriptableObjects
   m_LastFoldersGridSize: 67
   m_LastProjectPath: C:\Users\Jose Gomis\Documents\GitHub\PuyoPuyo-Jueguito\PruebaTetris
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 82710000
-    m_LastClickedID: 29058
-    m_ExpandedIDs: 000000006071000000ca9a3bffffff7f
+    m_SelectedIDs: 80700000
+    m_LastClickedID: 28800
+    m_ExpandedIDs: 00000000d06f0000f06f000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -836,7 +836,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000060710000
+    m_ExpandedIDs: 00000000d06f0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

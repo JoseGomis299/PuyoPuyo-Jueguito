@@ -24,12 +24,12 @@ public class InputManager : NetworkBehaviour
     private AbilityController _abilityController;
     private void Start()
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         _myInput = gameObject.GetComponent<PlayerInput>();
         _pieceController = gameObject.GetComponent<PieceController>();
         _abilityController = GetComponent<AbilityController>();
 
-        
-        if (!(IsClient || IsHost) && SpawnController.Instance.playerCount > 1)
+        if (NetworkManager.Singleton == null && SpawnController.Instance.playerCount > 1)
         {
             playerTwo = SpawnController.Instance.SetPlayerID() == 1;
             SpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
@@ -90,6 +90,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnHold(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(playerTwo || _pieceController.currentBlock == null) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
@@ -99,6 +100,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnInstantDown(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(playerTwo) return;
         if (context.started)
         {
@@ -108,6 +110,7 @@ public class InputManager : NetworkBehaviour
 
     public void OnAbility(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(playerTwo) return;
         if (context.started)
         {

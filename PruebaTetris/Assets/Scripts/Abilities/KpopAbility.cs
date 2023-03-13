@@ -6,6 +6,6 @@ public class KpopAbility : ICharacterAbility
 {
     public void UseAbility(PieceController myPieceController, PieceController enemyPieceController)
     {
-        throw new System.NotImplementedException();
+        
     }
 }
