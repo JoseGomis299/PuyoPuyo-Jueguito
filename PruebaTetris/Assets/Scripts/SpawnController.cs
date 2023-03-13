@@ -49,24 +49,42 @@ public class SpawnController : NetworkBehaviour
         return -1;
     }
 
+    public void SetPlayerAbilities(AbilityController abilityController, bool playerTwo)
+    {
+        string json = "";
+        
+        if (playerTwo)
+        {
+            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile2.json");
+        }
+        else
+        {
+            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
+        }
+        
+        CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json); 
+        abilityController.SetAbility(characterAbilityData.abilityId);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void SpawnPlayerServerRpc(ServerRpcParams serverRpcParams = default)
     {
         var id = serverRpcParams.Receive.SenderClientId;
         var player = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
         player.GetComponent<NetworkObject>().SpawnAsPlayerObject(id, true);
-        
-        SetAbilityClientRpc();
+
+        SetAbilityClientRpc(new NetworkObjectReference(player));
     }
     
     [ClientRpc]
-    private void SetAbilityClientRpc()
+    private void SetAbilityClientRpc(NetworkObjectReference reference)
     {
-        if(!IsOwner) return;
+        reference.TryGet(out var abilityController);
+        if(!abilityController.IsOwner) return;
       
         string json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
-        CharacterAbility characterAbility = JsonUtility.FromJson<CharacterAbility>(json);
+        CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json);
 
-        Debug.Log(characterAbility.abilityId);
+        abilityController.GetComponent<AbilityController>().SetAbility(characterAbilityData.abilityId);
     }
 }
