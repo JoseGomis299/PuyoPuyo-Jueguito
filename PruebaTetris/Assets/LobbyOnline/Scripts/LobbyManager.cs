@@ -11,9 +11,11 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LobbyManager : NetworkBehaviour {
+public class LobbyManager : NetworkBehaviour
+{
 
 
+    public event Action onAuthenticationComplete;
     public static LobbyManager Instance { get; private set; }
 
 
@@ -49,6 +51,7 @@ public class LobbyManager : NetworkBehaviour {
     private Lobby joinedLobby;
     public string playerName { get; private set; }
 
+    private bool authenticated;
 
     private void Awake() {
         Instance = this;
@@ -59,8 +62,16 @@ public class LobbyManager : NetworkBehaviour {
         HandleLobbyHeartbeat();
         HandleLobbyPolling();
     }
-
-    public async void Authenticate(string playerName) {
+    
+    public async void Authenticate(string playerName)
+    {
+        if(authenticated) { 
+            OnLeftLobby?.Invoke(this, EventArgs.Empty); 
+            RefreshLobbyList();  
+            onAuthenticationComplete?.Invoke(); 
+            return;}
+        authenticated = true;
+        
         this.playerName = playerName;
         InitializationOptions initializationOptions = new InitializationOptions();
         initializationOptions.SetProfile(playerName);
@@ -75,6 +86,14 @@ public class LobbyManager : NetworkBehaviour {
         };
 
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        onAuthenticationComplete?.Invoke();
+    }
+
+    public void DeAuthenticate()
+    {
+        if(!authenticated) return;
+        AuthenticationService.Instance.SignOut();
+        AuthenticationService.Instance.ClearSessionToken();
     }
 
     private void HandleRefreshLobbyList() {
@@ -311,8 +330,8 @@ public class LobbyManager : NetworkBehaviour {
             joinedLobby = lobby;
 
             OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
-        } catch (LobbyServiceException e) {
-            Debug.Log(e);
+        } catch (LobbyServiceException) {
+            CreateLobby(playerName+"'s Lobby", 2, false);
         }
     }
 
