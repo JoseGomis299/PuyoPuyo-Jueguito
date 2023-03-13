@@ -21,15 +21,18 @@ public class InputManager : NetworkBehaviour
     private int _rotation;
 
     private PieceController _pieceController;
+    private AbilityController _abilityController;
     private void Start()
     {
         _myInput = gameObject.GetComponent<PlayerInput>();
         _pieceController = gameObject.GetComponent<PieceController>();
+        _abilityController = GetComponent<AbilityController>();
 
         
         if (!(IsClient || IsHost) && SpawnController.Instance.playerCount > 1)
         {
             playerTwo = SpawnController.Instance.SetPlayerID() == 1;
+            SpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
             _myInput.SwitchCurrentActionMap("TwoPlayers");
         }
         else
@@ -103,6 +106,15 @@ public class InputManager : NetworkBehaviour
         }
     }
 
+    public void OnAbility(InputAction.CallbackContext context)
+    {
+        if(playerTwo) return;
+        if (context.started)
+        {
+            _abilityController.UseAbility();
+        }
+    }
+
     #endregion
     
     #region Player2
@@ -168,6 +180,15 @@ public class InputManager : NetworkBehaviour
         if (context.started)
         {
             _pieceController.InstantDown();
+        }
+    }
+    
+    public void OnAbility1(InputAction.CallbackContext context)
+    {
+        if(!playerTwo) return;
+        if (context.started)
+        {
+            _abilityController.UseAbility();
         }
     }
 

@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 6657845490576452065}
   - component: {fileID: 4552492275004293229}
   - component: {fileID: 325694000671138469}
+  - component: {fileID: -4971086048046724051}
   m_Layer: 0
   m_Name: Grid
-  m_TagString: Untagged
+  m_TagString: grid
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -53,10 +54,8 @@ MonoBehaviour:
   - {fileID: 404894547157812164, guid: 6c87b37bfa017d545b47b7a227f6c1d5, type: 3}
   - {fileID: -2662597353072287166, guid: 4aa2de018ec798a42aa54a5af6ecece4, type: 3}
   fallSpeed: 7
-  piecesNumbers: 
   gridSize: {x: 6, y: 14}
   cellSize: 1
-  initialOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &6657845490576452065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -457,6 +456,54 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: b44406c1-cd6b-4a3a-a534-2a0b273cfc4b
     m_ActionName: Menu/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6657845490576452065}
+        m_TargetAssemblyTypeName: InputManager, Assembly-CSharp
+        m_MethodName: OnAbility
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 1edc4323-6fbc-46e9-8f31-b3ec02220fa0
+    m_ActionName: SinglePlayer/Ability[/Keyboard/e,/Keyboard/enter]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6657845490576452065}
+        m_TargetAssemblyTypeName: InputManager, Assembly-CSharp
+        m_MethodName: OnAbility
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: d190128f-e9e7-4e96-997e-0eeb6e5c8ed1
+    m_ActionName: TwoPlayers/Ability[/Keyboard/e]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6657845490576452065}
+        m_TargetAssemblyTypeName: InputManager, Assembly-CSharp
+        m_MethodName: OnAbility1
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 7a3ba0bf-0eeb-4480-bb5e-80d02ede0428
+    m_ActionName: TwoPlayers/Ability1[/Keyboard/enter]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: SinglePlayer
@@ -478,3 +525,15 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &-4971086048046724051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5011858164427353340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66320e1d43d8d834fbc2b29109367b19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

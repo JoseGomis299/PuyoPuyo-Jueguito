@@ -167,8 +167,8 @@ public class LobbyManager : NetworkBehaviour
         PlayerCharacter playerCharacter =
             Enum.Parse<PlayerCharacter>(GetPlayer().Data[KEY_PLAYER_CHARACTER].Value);
         var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
-        CharacterAbility characterAbility = new CharacterAbility(characterSo.characterBody, characterSo.id);
-        string json = JsonUtility.ToJson(characterAbility, true);
+        CharacterAbilityData characterAbilityData = new CharacterAbilityData(characterSo.characterBody, characterSo.id);
+        string json = JsonUtility.ToJson(characterAbilityData, true);
         File.WriteAllText(Application.persistentDataPath + "/AbilitieDataFile.json", json);
     }
 
