@@ -16,6 +16,7 @@ public class PieceController : NetworkBehaviour
     [Header("Grid stats")]
    [SerializeField] private Piece[] availablePieces; 
    public float fallSpeed = 5;
+   [HideInInspector] public float fallSpeedDelta = 1;
 
    [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
@@ -94,7 +95,7 @@ public class PieceController : NetworkBehaviour
        if (_isOnline && !IsOwner) { return; }
        if(currentBlock == null) return;
 
-       fallSpeed += Time.deltaTime / 20;
+       fallSpeed += (Time.deltaTime / 20)*fallSpeedDelta;
        currentBlock.Fall(fallSpeed);
        
        if(_inputManager != null)_inputManager.ManageInput();

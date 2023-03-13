@@ -164,7 +164,8 @@ public class Block
         foreach (var piece in pieceList)
         {
             grid.GetXY(piece.transform.position, out var x, out var y);
-            piece.transform.position = grid.GetCellCenter(x+(int)direction.x, y + (int)direction.y);
+            if(direction.y != 0) piece.transform.position = grid.GetCellCenter(x+(int)direction.x, y + (int)direction.y);
+            else piece.transform.position = new Vector3(grid.GetCellCenter(x+(int)direction.x, 0).x, piece.transform.position.y);
             
             if (!grid.IsInBoundsNoHeight(grid.GetCellCenter(x + (int)direction.x, y + (int)direction.y-1)) ||
                 grid.GetValue(x + (int)direction.x, y + (int)direction.y-1) != null) canMoveDown = false;
