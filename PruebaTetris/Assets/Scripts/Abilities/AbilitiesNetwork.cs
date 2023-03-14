@@ -7,6 +7,7 @@ using UnityEngine;
 public class AbilitiesNetwork : NetworkBehaviour
 {
     public static AbilitiesNetwork Instance { get; private set; }
+    public bool usingAbility;
 
     private void Awake()
     {
@@ -15,6 +16,8 @@ public class AbilitiesNetwork : NetworkBehaviour
 
     public void PerformAbility(NetworkObjectReference myPieceController, NetworkObjectReference enemyPieceController, int abilityId)
     {
+        if(usingAbility) return;
+        usingAbility = true;
         PerformAbilityServerRpc(myPieceController, enemyPieceController, abilityId);
     }
 
@@ -46,6 +49,13 @@ public class AbilitiesNetwork : NetworkBehaviour
                     {
                         enemy.fallSpeed /= 0.1f;
                         enemy.fallSpeedDelta /= 0.1f;
+                    }, 5f);
+                }
+                else
+                {
+                    Timer.Instance.WaitForAction(() =>
+                    {
+                        usingAbility = false;
                     }, 5f);
                 }
             };

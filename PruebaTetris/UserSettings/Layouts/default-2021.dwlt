@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1738.8679
     height: 896.60376
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Hierarchy
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 21
+  controlID: 15
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 200}
   m_MaxSize: {x: 16192, y: 16192}
   vertical: 1
-  controlID: 22
+  controlID: 16
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 100}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
-  controlID: 23
+  controlID: 17
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -189,8 +189,8 @@ MonoBehaviour:
     y: 0
     width: 312.45285
     height: 500.8302
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 221}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 13}
   m_Panes:
   - {fileID: 13}
@@ -206,7 +206,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: SceneView
+  m_Name: GameView
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
@@ -217,12 +217,12 @@ MonoBehaviour:
     height: 500.8302
   m_MinSize: {x: 202, y: 221}
   m_MaxSize: {x: 4002, y: 4021}
-  m_ActualView: {fileID: 14}
+  m_ActualView: {fileID: 12}
   m_Panes:
   - {fileID: 14}
   - {fileID: 12}
-  m_Selected: 0
-  m_LastSelected: 1
+  m_Selected: 1
+  m_LastSelected: 0
 --- !u!114 &10
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -337,7 +337,7 @@ MonoBehaviour:
     m_HSlider: 0
     m_VSlider: 0
     m_IgnoreScrollWheelUntilClicked: 0
-    m_EnableMouseInput: 0
+    m_EnableMouseInput: 1
     m_EnableSliderZoomHorizontal: 0
     m_EnableSliderZoomVertical: 0
     m_UniformScale: 1
@@ -399,9 +399,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 
-      m_LastClickedID: 0
-      m_ExpandedIDs: c4cdfcff0acefcff2ad0fcff44d0fcff72d0fcffb6defcfffcdefcff1ce1fcff36e1fcff64e1fcff6cf1fcffb2f1fcffd2f3fcffecf3fcff1af4fcffe800fdff2e01fdff4e03fdff6803fdff9603fdff7c0ffdffc20ffdffe211fdfffc11fdff2a12fdff4a1dfdff901dfdffb01ffdffca1ffdfff81ffdff022efdff482efdff6830fdff8230fdffb030fdffbe38fdff0439fdff243bfdff3e3bfdff6c3bfdff184ffdff5e4ffdff7e51fdff9851fdffc651fdff9861fdffde61fdfffe63fdff1864fdff4664fdfffc71fdff4272fdff6274fdff7c74fdffaa74fdffec80fdff3281fdff5283fdff6c83fdff9a83fdff5687fdff9c87fdffbc89fdffd689fdff048afdffc28afdff968efdffee9cfdff349dfdff529ffdff6c9ffdff9a9ffdfff2abfdff38acfdff56aefdff70aefdff9eaefdff78b5fdffb0bbfdfff6bbfdff14befdff2ebefdff5cbefdff8ecdfdff36d4fdff7cd4fdff9ad6fdffb4d6fdffe2d6fdffd0e6fdff16e7fdff34e9fdff4ee9fdff7ce9fdffb6fdfdff0a06feff5006feff6e08feff8808feffb608feffe21dfeff281efeff4620feff6020feff8e20feffce2dfeff142efeff3230feff4c30feff7a30feff7239feffac3ffefff23ffeff1042feff2a42feff5842feff264bfeff6c4bfeff8a4dfeffa44dfeffd24dfeff965afeffcea0feff14a1feff32a3feff4ca3feff7aa3feff60affeff52b6feff98b6feffb6b8feffd0b8fefffeb8feffdac1feff20c2feff3ec4feff58c4feff86c4feffbccbfefff0defeff36dffeff54e1feff6ee1feff9ce1feff82f2feffd6f8feff1cf9feff3afbfeff54fbfeff82fbfeffd203ffff3010ffff7610ffff9412ffffae12ffffdc12ffff5a2dffffa02dffffbe2fffffd82fffff0630ffff1e3effff643effff8240ffff9c40ffffca40ffff8e41ffffa84effff0a5bffff505bffff6e5dffff885dffffb65dfffffa6affff406bffff5e6dffff786dffffa66dffffc077ffffb67efffffc7effff1a81ffff3481ffff6281ffff2a96ffff4e9fffff949fffffb2a1ffffcca1fffffaa1ffff2eaeffff12b5ffff58b5ffff76b7ffff90b7ffffbeb7ffff30bfffff8cdfffffd2dffffff4e1ffff12e2ffff44e2fffffce2ffff00e4ffff74e4ffff20fbfffff4ffffffce6d00002e6e0000506e00006c6e0000409400007e94000084940000e4a1000002a2000038a2000078a2000084d400007ad600007c1c0100ba1c0100c01c01003c280100542801007a280100802801009c280100667a0100287d0100c6090200de090200040a02000a0a0200260a0200c04f020084510200767502003a770200e6980200aa9a0200
+      m_SelectedIDs: 24e80000
+      m_LastClickedID: 59428
+      m_ExpandedIDs: 4e28ffff8628ffffa82affffc22afffff02affff922bfffff42bfffff433ffff2c34ffff5236ffff7036ffffa236ffff5437ffffa83cffff544bffff9a4bffffba4dffffd44dffff024effffb84effffea51ffff9677ffffdc77fffffc79ffff167affff447afffffa7affff8cecffff46f6ffff8cf6ffffacf8ffffc6f8fffff4f8ffff18fbffff1c6e0000e06f0000b2980000b8980000f49800001699000032990000a0cc0000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -672,9 +672,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 1.8719324, y: 9.411538, z: -0.21932326}
+    m_Target: {x: 803.16034, y: 7.825232, z: -9.771375}
     speed: 2
-    m_Value: {x: 1.8719324, y: 9.411538, z: -0.21932326}
+    m_Value: {x: 803.16034, y: 7.825232, z: -9.771375}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -725,9 +725,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 20.353302
+    m_Target: 1333.0659
     speed: 2
-    m_Value: 20.353302
+    m_Value: 1333.0659
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -793,22 +793,22 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/ScriptableObjects
+    - Assets/Scenes
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 67
   m_LastFolders:
-  - Assets/Scripts/ScriptableObjects
+  - Assets/Scenes
   m_LastFoldersGridSize: 67
   m_LastProjectPath: C:\Users\Jose Gomis\Documents\GitHub\PuyoPuyo-Jueguito\PruebaTetris
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 80700000
-    m_LastClickedID: 28800
-    m_ExpandedIDs: 00000000d06f0000f06f000000ca9a3bffffff7f
+    m_SelectedIDs: 90710000
+    m_LastClickedID: 29072
+    m_ExpandedIDs: 00000000747100009271000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -836,7 +836,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000d06f0000
+    m_ExpandedIDs: 0000000074710000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

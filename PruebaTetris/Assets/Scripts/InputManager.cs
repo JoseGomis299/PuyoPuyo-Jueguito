@@ -170,6 +170,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnHold1(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(!playerTwo) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
@@ -179,6 +180,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnInstantDown1(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(!playerTwo) return;
         if (context.started)
         {
@@ -188,6 +190,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnAbility1(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(!playerTwo) return;
         if (context.started)
         {
