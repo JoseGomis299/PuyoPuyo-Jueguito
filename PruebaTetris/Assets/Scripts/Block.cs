@@ -109,7 +109,7 @@ public class Block
             }
             
             //If haven't fallen activate extra time (it resets every time the block falls)
-            if (!_advisedFromFalling)
+            if (!_advisedFromFalling || _resetTime)
             {
                 _advisedFromFalling = true;
                 stopFalling = true;
@@ -174,6 +174,7 @@ public class Block
         if (stopFalling && canMoveDown)
         {
             stopFalling = false;
+            _resetTime = true;
         }
     }
     
@@ -201,6 +202,8 @@ public class Block
     }
     public void SetPositionInGrid(int x, int y)
     {
+        _advisedFromFalling = false;
+        _resetTime = true;
         for (int i = 0; i < pieceList.Length; i++)
         {   if(pieceList[i] == null) return;
             pieceList[i].transform.position = grid.GetCellCenter(x, y + i);
@@ -213,6 +216,11 @@ public class Block
         for (int i = 0; i < pieceList.Length; i++)
         {
             if(pieceList[i] == null) return;
+            if (rotating && i>0)
+            {
+                rotation = 0;
+                pieceList[i].ForceRotation(grid, 0);
+            }
             pieceList[i].transform.localScale = Vector3.one*scaleMultiplier;
             position.y += pieceList[i].transform.localScale.y*i;
             pieceList[i].transform.position = position;

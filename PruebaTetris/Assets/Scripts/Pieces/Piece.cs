@@ -150,6 +150,7 @@ public abstract class Piece : NetworkBehaviour
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
+        block.rotating = false;
     }
 
     private IEnumerator DoRotation(Grid<Piece> grid, float finalRotation, float rotation)

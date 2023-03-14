@@ -25,10 +25,4 @@ public class ReaguetonAbility : ICharacterAbility
             _usingAbility = false;
         }, 5f);
     }
-
-    [ClientRpc]
-    private void UseAbilityClientRcp(NetworkObjectReference enemyPieceController)
-    {
-       
-    }
 }

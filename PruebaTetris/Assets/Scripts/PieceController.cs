@@ -107,6 +107,8 @@ public class PieceController : NetworkBehaviour
        if (_holdBlock == null)
        {
            _holdBlock = currentBlock;
+
+           currentBlock = null;
            if(!_isOnline)GenerateBlock();
            else OnlineBlockGeneration();
        }
@@ -176,19 +178,39 @@ public class PieceController : NetworkBehaviour
    public void SetPiecesValue()
    {
        if(_stopPlacing) return;
-
-       foreach (var piece in currentBlock.GetPieces())
-       {
-           piece.SetValue(_grid, this);
-       }
-
-       currentBlock = null;
+       
        StartCoroutine(_SetPiecesValue());
    }
    
     private IEnumerator _SetPiecesValue()
     {
-        _stopPlacing = true;
+        if (currentBlock != null)
+        {
+            foreach (var piece in currentBlock.GetPieces())
+            {
+                piece.SetValue(_grid, this);
+            }
+            
+            GetAllPieces();
+            MakeAllFall();
+
+            //Wait until all have landed again
+            yield return new WaitUntil(() =>
+            {
+                foreach (var piece in _pieces)
+                {
+                    if (piece == null) continue;
+                    if (!piece.fallen)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+            currentBlock = null;
+        }
+
         GetActivePieces();
 
         foreach (var piece in _pieces)
@@ -394,7 +416,6 @@ public class PieceController : NetworkBehaviour
         var id = serverRpcParams.Receive.SenderClientId;
         if (!NetworkManager.ConnectedClients.ContainsKey(id)) return;
         var pieceController = NetworkManager.ConnectedClients[id].PlayerObject.gameObject.GetComponent<PieceController>();
-        pieceController.gameObject.name = "Grid " + id;
 
         if (currentBlock == null)
         {
@@ -455,7 +476,6 @@ public class PieceController : NetworkBehaviour
     {
         if (!IsOwnedByServer)
         {
-            gameObject.name = "GridClient " + id;
             currentPieces[0].TryGet(out var piece0);
             currentPieces[1].TryGet(out var piece1);
             currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this); 
@@ -470,6 +490,7 @@ public class PieceController : NetworkBehaviour
             {
                 nextBlocks[i].SetPosition(nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
             }
+
         }
     }
     

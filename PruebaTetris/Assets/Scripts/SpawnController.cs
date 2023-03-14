@@ -9,6 +9,7 @@ public class SpawnController : NetworkBehaviour
 {
     public static SpawnController Instance;
     [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private GameObject waitingPlayers;
     public int playerCount { get; private set; }
     private int[] _playerIDs;
     private void Awake()
@@ -85,5 +86,6 @@ public class SpawnController : NetworkBehaviour
         CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json);
 
         abilityController.GetComponent<AbilityController>().SetAbility(characterAbilityData.abilityId);
+        waitingPlayers.SetActive(false);
     }
 }
