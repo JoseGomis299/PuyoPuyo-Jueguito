@@ -30,7 +30,7 @@ public class PieceController : NetworkBehaviour
     private InputManager _inputManager;
 
    public Block currentBlock;
-   public List<Block> currentGarbage;
+   public LinkedList<Piece> currentGarbage;
    private Block _holdBlock;
    private Transform holdTransform;
    public bool held { get; private set; }
@@ -54,7 +54,7 @@ public class PieceController : NetworkBehaviour
   
    private void Start()
    {
-        currentGarbage = new List<Block>();
+        currentGarbage = new LinkedList<Piece>();
 
        _isOnline = IsClient || IsHost;
        _neighbours = new LinkedList<Piece>();
@@ -116,12 +116,7 @@ public class PieceController : NetworkBehaviour
        if(currentBlock == null) return;
 
        fallSpeed += (Time.deltaTime / 20)*fallSpeedDelta;
-       currentBlock.Fall(fallSpeed);
-        foreach (Block garbage in currentGarbage)
-        {
-            garbage.Fall(fallSpeed);
-        }
-       
+       currentBlock.Fall(fallSpeed);       
        if(_inputManager != null)_inputManager.ManageInput();
    }
 
@@ -256,34 +251,34 @@ public class PieceController : NetworkBehaviour
 
                 combo++;
 
-                // cantidadBasuraTirar += _neighbours.Count - 4;
-                //
-                // if (combo > 1)
-                // {
-                //     //int cantidadBasuraTirar = 6 - cantidadBasura;
-                //     //int cantidadBasuraRecuperar = 6 - cantidadBasuraTirar;
-                //
-                //
-                //     /*if (cantidadBasuraRecuperar < 0)
-                //     {
-                //         cantidadBasuraRecuperar = 0;
-                //     }*/
-                //
-                //     /*if (cantidadBasura < 0)
-                //     {
-                //         cantidadBasura = 0;
-                //     }*/
-                //     cantidadBasuraTirar += 6;
-                //     //rival.cantidadBasura += cantidadBasuraTirar;
-                //     Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
-                // }
-                // else if (combo == 1)
-                // {
-                //     cantidadBasuraTirar += 1;
-                //     Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
-                // }
+                cantidadBasuraTirar += _neighbours.Count - 4;
 
-                //sumar puntuación aquí, "_neighbours.Count" es el número de piezas que van a explotar
+                if (combo > 1)
+                {
+                    //int cantidadbasuratirar = 6 - cantidadbasura;
+                    //int cantidadbasurarecuperar = 6 - cantidadbasuratirar;
+
+
+                    /*if (cantidadbasurarecuperar < 0)
+                    {
+                        cantidadbasurarecuperar = 0;
+                    }*/
+
+                    /*if (cantidadbasura < 0)
+                    {
+                        cantidadbasura = 0;
+                    }*/
+                    cantidadBasuraTirar += 6;
+                    //rival.cantidadbasura += cantidadbasuratirar;
+                    Debug.Log("combo: " + combo + " - " + "basura: " + cantidadBasuraTirar);
+                }
+                else if (combo == 1)
+                {
+                    cantidadBasuraTirar += 1;
+                    Debug.Log("combo: " + combo + " - " + "basura: " + cantidadBasuraTirar);
+                }
+
+                //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
                     p.Explode(_grid);
@@ -337,7 +332,7 @@ public class PieceController : NetworkBehaviour
         
         //If there it is a combo start again
         bool startAgain = false;
-        GetActivePieces();
+        GetAllPieces();
         foreach (var piece in _pieces)
         {
             if (piece == null || piece.exploded) continue;
@@ -361,8 +356,6 @@ public class PieceController : NetworkBehaviour
         }
 
         _stopPlacing = startAgain;
-        
-       
 
         if (startAgain) StartCoroutine(_SetPiecesValue());
         else
@@ -372,7 +365,7 @@ public class PieceController : NetworkBehaviour
             else OnlineBlockGeneration();
             if (combo > 0)
             {
-                //rival.lanzarBasura(cantidadBasuraTirar);
+                rival.lanzarBasura(cantidadBasuraTirar);
                 cantidadBasuraTirar = 0;
                 combo = 0;
             }
@@ -402,18 +395,35 @@ public class PieceController : NetworkBehaviour
             }
 
 
-            Block g = new Block(Instantiate(garbagePieces[0]), _grid, this);
-            g.SetPositionInGrid(posX, _grid.GetHeight() + posY);
-            currentGarbage.Add(g);
+            Piece g = Instantiate(garbagePieces[0]);
+            g.SetPositionInGrid(posX, _grid.GetHeight() + posY,_grid);
+            currentGarbage.AddLast(g);
             posX++;
         }
+        foreach (Piece garbage in currentGarbage)
+        {
+            if (garbage == null) continue;
+            garbage.FallCoroutine(_grid, fallSpeed, this);
+            Debug.Log(garbage);
+        }
         Debug.Log("Recibiendo Basura");
-
         
         //Esperar a que esten todas colocadas
-        yield return new WaitForSeconds(3);
+        yield return new WaitUntil(()=> 
+        {
+            foreach (var gar in currentGarbage)
+            {
+                if (!gar.fallen)
+                {
+                    return false;
+                }
+            }
+            return true;
 
+        });
+        yield return new WaitForSeconds(0.25f);
         //Continuar
+        currentGarbage.Clear();
         recibiendoBasura = false;
         GenerateBlock();
     }
