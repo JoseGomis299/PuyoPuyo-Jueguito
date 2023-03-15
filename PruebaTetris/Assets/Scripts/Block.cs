@@ -40,7 +40,7 @@ public class Block
 
         for (int i = 0; i < pieceList.Length; i++)
         {
-            pieceList[i].SetBlockReference(this, i);
+            pieceList[i].SetBlockReference(this);
         }
     }
 

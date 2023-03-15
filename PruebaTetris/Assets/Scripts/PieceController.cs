@@ -256,32 +256,32 @@ public class PieceController : NetworkBehaviour
 
                 combo++;
 
-                cantidadBasuraTirar += _neighbours.Count - 4;
-
-                if (combo > 1)
-                {
-                    //int cantidadBasuraTirar = 6 - cantidadBasura;
-                    //int cantidadBasuraRecuperar = 6 - cantidadBasuraTirar;
-
-
-                    /*if (cantidadBasuraRecuperar < 0)
-                    {
-                        cantidadBasuraRecuperar = 0;
-                    }*/
-
-                    /*if (cantidadBasura < 0)
-                    {
-                        cantidadBasura = 0;
-                    }*/
-                    cantidadBasuraTirar += 6;
-                    //rival.cantidadBasura += cantidadBasuraTirar;
-                    Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
-                }
-                else if (combo == 1)
-                {
-                    cantidadBasuraTirar += 1;
-                    Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
-                }
+                // cantidadBasuraTirar += _neighbours.Count - 4;
+                //
+                // if (combo > 1)
+                // {
+                //     //int cantidadBasuraTirar = 6 - cantidadBasura;
+                //     //int cantidadBasuraRecuperar = 6 - cantidadBasuraTirar;
+                //
+                //
+                //     /*if (cantidadBasuraRecuperar < 0)
+                //     {
+                //         cantidadBasuraRecuperar = 0;
+                //     }*/
+                //
+                //     /*if (cantidadBasura < 0)
+                //     {
+                //         cantidadBasura = 0;
+                //     }*/
+                //     cantidadBasuraTirar += 6;
+                //     //rival.cantidadBasura += cantidadBasuraTirar;
+                //     Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
+                // }
+                // else if (combo == 1)
+                // {
+                //     cantidadBasuraTirar += 1;
+                //     Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
+                // }
 
                 //sumar puntuación aquí, "_neighbours.Count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
@@ -372,7 +372,7 @@ public class PieceController : NetworkBehaviour
             else OnlineBlockGeneration();
             if (combo > 0)
             {
-                rival.lanzarBasura(cantidadBasuraTirar);
+                //rival.lanzarBasura(cantidadBasuraTirar);
                 cantidadBasuraTirar = 0;
                 combo = 0;
             }

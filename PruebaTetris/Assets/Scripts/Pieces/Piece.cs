@@ -44,7 +44,7 @@ public abstract class Piece : NetworkBehaviour
 
         for (int i = 0; i < cardinalPieces.Length; i++)
         {
-            if (cardinalPieces[i] != null && !cardinalPieces[i].exploded && !cardinalPieces[i].check)
+            if (cardinalPieces[i] != null && !cardinalPieces[i].exploded)
             {
                 //si es la pieza buscada añadirla a la lista de vecinos
                 if (cardinalPieces[i].Equals(this))
@@ -60,7 +60,7 @@ public abstract class Piece : NetworkBehaviour
                          case 3:transform.GetChild(2).gameObject.SetActive(true); //ACTIVAR PREFAB ABAJO
                              break;
                      }
-                    cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
+                    if(!cardinalPieces[i].check)cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
                 }
                 else if (cardinalPieces[i] is Garbage)
                 {
