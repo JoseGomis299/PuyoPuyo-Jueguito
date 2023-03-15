@@ -32,8 +32,9 @@ public abstract class Piece : NetworkBehaviour
     
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
     {
+        //Debug.Log("CheckingNeighbours");
         //Si soy basura return
-        
+
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
         
@@ -41,38 +42,61 @@ public abstract class Piece : NetworkBehaviour
         Piece left = grid.GetValue(x - 1, y);
         Piece up = grid.GetValue(x, y+1);
         Piece down = grid.GetValue(x, y-1);
-        
+
+        list.AddLast(this);
+
         //Desactivar todos los prefabs
+        foreach (Transform childTrans in transform.GetComponentInChildren<Transform>())
+        {
+            childTrans.gameObject.SetActive(false);
+        }
         
         //RIGHT
-        if (right != null && !right.exploded && right.Equals(this) && !right.check)
+        if (right != null && !right.exploded && right.Equals(this) )
         {
             //si es basura y no está en la lista de basura añadirla
             //activar prefab derecha
-            grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
-        } 
+            transform.GetChild(3).gameObject.SetActive(true);
+            if (!right.check)
+            {
+                grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
+            }
+        }
         //LEFT
-        if (left != null && !left.exploded && left.Equals(this) && !left.check)   
+        if (left != null && !left.exploded && left.Equals(this))   
         {
             //si es basura y no está en la lista de basura añadirla
             //activar prefab izquierda
-            grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
-        } 
+            transform.GetChild(1).gameObject.SetActive(true);
+            if (!left.check)
+            {
+                grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
+            }
+        }
         //UP
-        if (up != null && !up.exploded && up.Equals(this) && !up.check)    
+        if (up != null && !up.exploded && up.Equals(this))    
         {
             //si es basura y no está en la lista de basura añadirla
             //activar prefab arriba
-            grid.GetValue(x, y+1).CheckNeighbours(grid, list);
+            transform.GetChild(0).gameObject.SetActive(true);
+            if (!up.check)
+            {
+                grid.GetValue(x, y + 1).CheckNeighbours(grid, list);
+            }
+
         }
         //DOWN
-        if (down != null && !down.exploded && down.Equals(this) && !down.check)    
+        if (down != null && !down.exploded && down.Equals(this))    
         {
             //si es basura y no está en la lista de basura añadirla
             //activar prefab abajo
-            grid.GetValue(x , y-1).CheckNeighbours(grid, list);
+            transform.GetChild(2).gameObject.SetActive(true);
+            if (!down.check)
+            {
+                grid.GetValue(x, y - 1).CheckNeighbours(grid, list);
+            }
         }
-        list.AddLast(this);
+        //list.AddLast(this);
     }
 
     public bool FallCoroutine(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
@@ -120,12 +144,19 @@ public abstract class Piece : NetworkBehaviour
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
 
-        if (block.GetPieces()[1].rotating || rotating) return false;
+        if(block.GetPieces().Length > 1)
+        {
+            if (block.GetPieces()[1].rotating || rotating) return false;
+        }
+            
         if (!_advisedFromFalling)
         {
             if (_blockIndex == 0 && block.rotation == 0)
             {
-                block.GetPieces()[1].transform.position = grid.GetCellCenter(x, y+1);
+                if (block.GetPieces().Length > 1)
+                {
+                    block.GetPieces()[1].transform.position = grid.GetCellCenter(x, y + 1);
+                }
             }
             block.stopFalling = true;
             if(!doNotSetTime)block.lastFallenTime = Time.time;

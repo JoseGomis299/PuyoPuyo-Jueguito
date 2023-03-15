@@ -13,8 +13,9 @@ using Random = UnityEngine.Random;
 
 public class PieceController : NetworkBehaviour
 {
-    [Header("Grid stats")]
+   [Header("Grid stats")]
    [SerializeField] private Piece[] availablePieces; 
+   [SerializeField] private Piece[] garbagePieces; 
    public float fallSpeed = 5;
    [HideInInspector] public int[] piecesNumbers;
 
@@ -22,9 +23,14 @@ public class PieceController : NetworkBehaviour
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
    [SerializeField] private float cellSize = 1;
 
-   private InputManager _inputManager;
+   [Header("Grid Rival")]
+   [SerializeField] private PieceController rival;
+
+
+    private InputManager _inputManager;
 
    public Block currentBlock;
+   public List<Block> currentGarbage;
    private Block _holdBlock;
    private Transform holdTransform;
    public bool held { get; private set; }
@@ -39,9 +45,16 @@ public class PieceController : NetworkBehaviour
 
    private bool _isOnline;
    private bool _doNotGenerate;
+
+   private int combo = 0;
+   private int cantidadBasuraTirar = 0;
+   private int cantidadBasuraRecibir = 0;
+   private bool recibiendoBasura = false;
   
    private void Start()
    {
+        currentGarbage = new List<Block>();
+
        _isOnline = IsClient || IsHost;
        _neighbours = new LinkedList<Piece>();
        _pieces = new LinkedList<Piece>();
@@ -59,34 +72,41 @@ public class PieceController : NetworkBehaviour
 
    public void GenerateBlock()
    {
-       if (nextBlocks[0] == null)
-       {
-           currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-               Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+        if (!recibiendoBasura)
+        {
+            if (nextBlocks[0] == null)
+            {
+                currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
 
-           for (int i = 0; i < nextBlocks.Length; i++)
-           {
-               nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                   Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
-           }
-       }
-       else
-       {
-           currentBlock = nextBlocks[0];
-           for (int i = 0; i < nextBlocks.Length-1; i++)
-           {
-               nextBlocks[i] = nextBlocks[i + 1];
-           }
-           nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-               Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
-       }
-       
-       currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
-      for (int i = 0; i < nextBlocks.Length; i++)
-      {
-          nextBlocks[i].SetPosition(nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
-      }
-      held = false;
+                for (int i = 0; i < nextBlocks.Length; i++)
+                {
+                    nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                        Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                }
+            }
+            else
+            {
+                currentBlock = nextBlocks[0];
+                for (int i = 0; i < nextBlocks.Length - 1; i++)
+                {
+                    nextBlocks[i] = nextBlocks[i + 1];
+                }
+                nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+            }
+
+            currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+            for (int i = 0; i < nextBlocks.Length; i++)
+            {
+                nextBlocks[i].SetPosition(nextTransforms[i].position, i == 0 ? 0.75f : 0.75f * 0.5f * i);
+            }
+            held = false;
+        }
+        else
+        {
+            StartCoroutine(recibirBasura());
+        } 
    }
 
    private void Update()
@@ -95,6 +115,10 @@ public class PieceController : NetworkBehaviour
        if(currentBlock == null) return;
       
        currentBlock.Fall(fallSpeed);
+        foreach (Block garbage in currentGarbage)
+        {
+            garbage.Fall(fallSpeed);
+        }
        
        if(_inputManager != null)_inputManager.ManageInput();
    }
@@ -172,7 +196,9 @@ public class PieceController : NetworkBehaviour
 
    public void SetPiecesValue()
    {
-       if(_stopPlacing) return;
+        StartCoroutine(_SetPiecesValue()); //Cambio de linea
+
+        if (_stopPlacing) return;
        bool greater = false;
        for (int i = 0; i < piecesNumbers.Length; i++)
        {
@@ -190,7 +216,7 @@ public class PieceController : NetworkBehaviour
            return;
        }
 
-       StartCoroutine(_SetPiecesValue());
+       //StartCoroutine(_SetPiecesValue());
    }
    
     private IEnumerator _SetPiecesValue()
@@ -208,6 +234,41 @@ public class PieceController : NetworkBehaviour
 
             if (_neighbours.Count >= 4)
             {
+                //Combos y Basura
+                if (combo == 1)
+                {
+                    cantidadBasuraTirar -= 1;
+                }
+
+                combo++;
+
+                cantidadBasuraTirar += _neighbours.Count - 4;
+
+                if (combo > 1)
+                {
+                    //int cantidadBasuraTirar = 6 - cantidadBasura;
+                    //int cantidadBasuraRecuperar = 6 - cantidadBasuraTirar;
+
+
+                    /*if (cantidadBasuraRecuperar < 0)
+                    {
+                        cantidadBasuraRecuperar = 0;
+                    }*/
+
+                    /*if (cantidadBasura < 0)
+                    {
+                        cantidadBasura = 0;
+                    }*/
+                    cantidadBasuraTirar += 6;
+                    //rival.cantidadBasura += cantidadBasuraTirar;
+                    Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
+                }
+                else if (combo == 1)
+                {
+                    cantidadBasuraTirar += 1;
+                    Debug.Log("Combo: " + combo + " - " + "Basura: " + cantidadBasuraTirar);
+                }
+
                 //sumar puntuación aquí, "_neighbours.Count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
@@ -269,23 +330,66 @@ public class PieceController : NetworkBehaviour
             }
             
             if (_neighbours.Count < 4) continue;
-            
             startAgain = true;
             break;
         }
 
         _stopPlacing = startAgain;
-        //combo++
+        
+       
+
         if (startAgain) StartCoroutine(_SetPiecesValue());
         else
         {
             //hacer lo que tenga que hacer el combo
-            
             if(!_isOnline)GenerateBlock();
             else OnlineBlockGeneration();
-            //combo = 0
+            if (combo > 0)
+            {
+                rival.lanzarBasura(cantidadBasuraTirar);
+                cantidadBasuraTirar = 0;
+                combo = 0;
+            }
+
         }
         yield return null;
+    }
+
+    private void lanzarBasura(int numBasura)
+    {
+        cantidadBasuraRecibir = numBasura;
+        recibiendoBasura = true;
+    }
+
+    private IEnumerator recibirBasura()
+    {
+        yield return new WaitForSeconds(0.25f);
+        //Recibir Basura
+        int posY = 0;
+        int posX = 0;
+        for (int i = 0; i < cantidadBasuraRecibir; i++)
+        {
+            if (posX >= 6)
+            {
+                posX = 0;
+                posY++;
+            }
+
+
+            Block g = new Block(Instantiate(garbagePieces[0]), _grid, this);
+            g.SetPositionInGrid(posX, _grid.GetHeight() + posY);
+            currentGarbage.Add(g);
+            posX++;
+        }
+        Debug.Log("Recibiendo Basura");
+
+        
+        //Esperar a que esten todas colocadas
+        yield return new WaitForSeconds(3);
+
+        //Continuar
+        recibiendoBasura = false;
+        GenerateBlock();
     }
 
     private void GetActivePieces()
