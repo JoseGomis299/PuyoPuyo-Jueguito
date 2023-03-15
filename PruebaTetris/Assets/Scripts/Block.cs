@@ -31,6 +31,19 @@ public class Block
         }
     }
 
+    public Block(Piece piece1, Grid<Piece> grid, PieceController pieceController)
+    {
+        _pieceController = pieceController;
+        this.grid = grid;
+        rotation = 0;
+        pieceList = new Piece[] { piece1 };
+
+        for (int i = 0; i < pieceList.Length; i++)
+        {
+            pieceList[i].SetBlockReference(this, i);
+        }
+    }
+
     public void Rotate(int rotation)
     {
         if(pieceList[0] == null || pieceList[1] == null) return;

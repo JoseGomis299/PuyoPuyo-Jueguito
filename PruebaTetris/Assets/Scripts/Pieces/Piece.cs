@@ -21,6 +21,7 @@ public abstract class Piece : NetworkBehaviour
 
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list, LinkedList<Piece> garbageList)
     {
+        //Debug.Log("CheckingNeighbours");
         //Si soy basura return
         if (this is Garbage) return;
 
@@ -36,9 +37,10 @@ public abstract class Piece : NetworkBehaviour
         };
         
         //Desactivar los prefabs de unión
-        // foreach(var prefab in unionPrefabs){
-        //   prefab.SetActive(false);
-        // }
+          foreach (Transform childTrans in transform.GetComponentInChildren<Transform>())
+        {
+            childTrans.gameObject.SetActive(false);
+        }
 
         for (int i = 0; i < cardinalPieces.Length; i++)
         {
@@ -47,17 +49,17 @@ public abstract class Piece : NetworkBehaviour
                 //si es la pieza buscada añadirla a la lista de vecinos
                 if (cardinalPieces[i].Equals(this))
                 {
-                    // switch (i)
-                    // {
-                    //     case 0: unionPrefabs[0].SetActive(true); //ACTIVAR PREFAB DERECHA
-                    //         break;
-                    //     case 1: unionPrefabs[1].SetActive(true); //ACTIVAR PREFAB IZQUIERDA
-                    //         break;
-                    //     case 2: unionPrefabs[2].SetActive(true); //ACTIVAR PREFAB ARRIBA
-                    //         break;
-                    //     case 3: unionPrefabs[3].SetActive(true); //ACTIVAR PREFAB ABAJO
-                    //         break;
-                    // }
+                     switch (i)
+                     {
+                         case 0: transform.GetChild(3).gameObject.SetActive(true); //ACTIVAR PREFAB DERECHA
+                             break;
+                         case 1: transform.GetChild(1).gameObject.SetActive(true); //ACTIVAR PREFAB IZQUIERDA
+                             break;
+                         case 2: transform.GetChild(0).gameObject.SetActive(true); //ACTIVAR PREFAB ARRIBA
+                             break;
+                         case 3:transform.GetChild(2).gameObject.SetActive(true); //ACTIVAR PREFAB ABAJO
+                             break;
+                     }
                     cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
                 }
                 else if (cardinalPieces[i] is Garbage)
@@ -114,7 +116,7 @@ public abstract class Piece : NetworkBehaviour
         
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
-        
+
         justFallen = true;
         fallen = true;
         
