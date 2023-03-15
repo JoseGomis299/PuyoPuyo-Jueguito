@@ -99,6 +99,7 @@ public abstract class Piece : NetworkBehaviour
         {
             yield return null;
         }
+
     }
 
     public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
@@ -126,6 +127,7 @@ public abstract class Piece : NetworkBehaviour
 
     public void SetValue(Grid<Piece> grid, PieceController pieceController)
     {
+        Debug.Log(gameObject.name);
         grid.SetValue(transform.position, this);
         justFallen = true;
         fallen = true;
@@ -215,4 +217,8 @@ public abstract class Piece : NetworkBehaviour
         Destroy(gameObject);
     }
 
+    internal void SetPositionInGrid(int posX, int posY, Grid<Piece> grid)
+    {
+       transform.position = grid.GetCellCenter(posX, posY);   
+    }
 }
