@@ -6,97 +6,72 @@ using UnityEngine;
 
 public abstract class Piece : NetworkBehaviour
 {
-    public bool check;
-    public bool fallen { get; private set; }
-    public bool justFallen;
+    [HideInInspector] public bool check;
+    [HideInInspector] public bool fallen;
+    [HideInInspector] public bool justFallen;
     public bool exploded { get; protected set; }
+    [SerializeField] protected GameObject[] unionPrefabs;
 
     public Block block{ get; private set; }
-    private bool _advisedFromFalling;
-    public bool doNotSetTime;
-
-    public bool rotating{ get; protected set; }
-    private Vector3 _finalPos;
-    private int _blockIndex;
-
-    public void SetBlockReference(Block block, int index)
+    
+    public void SetBlockReference(Block block)
     {
         this.block = block;
-        _blockIndex = index;
     }
-    
-    public void SetAdvice(bool value)
-    {
-        _advisedFromFalling = value;
-    }
-    
-    public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list)
+
+    public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list, LinkedList<Piece> garbageList)
     {
         //Debug.Log("CheckingNeighbours");
         //Si soy basura return
+        if (this is Garbage) return;
 
         grid.GetXY(transform.position, out var x, out var y);
         check = true;
+
+        Piece[] cardinalPieces =
+        {
+            grid.GetValue(x + 1, y), //RIGHT
+            grid.GetValue(x - 1, y), //LEFT
+            grid.GetValue(x, y + 1), //UP
+            grid.GetValue(x, y - 1) //DOWN
+        };
         
-        Piece right = grid.GetValue(x + 1, y);
-        Piece left = grid.GetValue(x - 1, y);
-        Piece up = grid.GetValue(x, y+1);
-        Piece down = grid.GetValue(x, y-1);
-
-        list.AddLast(this);
-
-        //Desactivar todos los prefabs
-        foreach (Transform childTrans in transform.GetComponentInChildren<Transform>())
+        //Desactivar los prefabs de unión
+          foreach (Transform childTrans in transform.GetComponentInChildren<Transform>())
         {
             childTrans.gameObject.SetActive(false);
         }
-        
-        //RIGHT
-        if (right != null && !right.exploded && right.Equals(this) )
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab derecha
-            transform.GetChild(3).gameObject.SetActive(true);
-            if (!right.check)
-            {
-                grid.GetValue(x + 1, y).CheckNeighbours(grid, list);
-            }
-        }
-        //LEFT
-        if (left != null && !left.exploded && left.Equals(this))   
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab izquierda
-            transform.GetChild(1).gameObject.SetActive(true);
-            if (!left.check)
-            {
-                grid.GetValue(x - 1, y).CheckNeighbours(grid, list);
-            }
-        }
-        //UP
-        if (up != null && !up.exploded && up.Equals(this))    
-        {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab arriba
-            transform.GetChild(0).gameObject.SetActive(true);
-            if (!up.check)
-            {
-                grid.GetValue(x, y + 1).CheckNeighbours(grid, list);
-            }
 
-        }
-        //DOWN
-        if (down != null && !down.exploded && down.Equals(this))    
+        for (int i = 0; i < cardinalPieces.Length; i++)
         {
-            //si es basura y no está en la lista de basura añadirla
-            //activar prefab abajo
-            transform.GetChild(2).gameObject.SetActive(true);
-            if (!down.check)
+            if (cardinalPieces[i] != null && !cardinalPieces[i].exploded && !cardinalPieces[i].check)
             {
-                grid.GetValue(x, y - 1).CheckNeighbours(grid, list);
+                //si es la pieza buscada añadirla a la lista de vecinos
+                if (cardinalPieces[i].Equals(this))
+                {
+                     switch (i)
+                     {
+                         case 0: transform.GetChild(3).gameObject.SetActive(true); //ACTIVAR PREFAB DERECHA
+                             break;
+                         case 1: transform.GetChild(1).gameObject.SetActive(true); //ACTIVAR PREFAB IZQUIERDA
+                             break;
+                         case 2: transform.GetChild(0).gameObject.SetActive(true); //ACTIVAR PREFAB ARRIBA
+                             break;
+                         case 3:transform.GetChild(2).gameObject.SetActive(true); //ACTIVAR PREFAB ABAJO
+                             break;
+                     }
+                    cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
+                }
+                else if (cardinalPieces[i] is Garbage)
+                {
+                    //si es basura y no está en la lista de basura añadirla
+                    cardinalPieces[i].check = true;
+                    garbageList.AddLast(cardinalPieces[i]);
+                }
             }
         }
-        //list.AddLast(this);
+
+        list.AddLast(this);
     }
 
     public bool FallCoroutine(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
@@ -110,8 +85,6 @@ public abstract class Piece : NetworkBehaviour
         {
             fallen = false;
             justFallen = true;
-            _advisedFromFalling = true;
-            pieceController.AddToPieceNumber(this, -1);
             StartCoroutine(DoFall(grid, fallSpeed, pieceController));
             return false;
         }
@@ -130,7 +103,7 @@ public abstract class Piece : NetworkBehaviour
 
     public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
-        if (fallen || block.stopFalling) return true;
+        if (fallen) return true;
         
         grid.GetXY(new Vector3(transform.position.x, transform.position.y-grid.GetCellSize()/2f-(fallSpeed * Time.deltaTime), transform.position.z), out var x, out var y);
         var nextPos = transform.position + Vector3.down * (fallSpeed * Time.deltaTime);
@@ -144,50 +117,24 @@ public abstract class Piece : NetworkBehaviour
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
 
-        if(block.GetPieces().Length > 1)
-        {
-            if (block.GetPieces()[1].rotating || rotating) return false;
-        }
-            
-        if (!_advisedFromFalling)
-        {
-            if (_blockIndex == 0 && block.rotation == 0)
-            {
-                if (block.GetPieces().Length > 1)
-                {
-                    block.GetPieces()[1].transform.position = grid.GetCellCenter(x, y + 1);
-                }
-            }
-            block.stopFalling = true;
-            if(!doNotSetTime)block.lastFallenTime = Time.time;
-            doNotSetTime = true;
-            foreach (var piece in block.GetPieces())
-            {
-                if(piece == null) continue;
-                piece.SetAdvice(true);
-            }
-
-            return false;
-        }
-
         justFallen = true;
         fallen = true;
-
-        if (y >= grid.GetHeight())
-        {
-            pieceController.CleanStage();
-            Destroy(gameObject);
-            return true;
-        }
         
-        grid.SetValue(x,y, this);
-        _finalPos =  grid.GetCellCenter(x, y);
-        pieceController.AddToPieceNumber(this, 1);
+        SetValue(grid, pieceController);
         return true;
     }
+
+    public void SetValue(Grid<Piece> grid, PieceController pieceController)
+    {
+        grid.SetValue(transform.position, this);
+        justFallen = true;
+        fallen = true;
+    }
+
+
     public void Rotate(Grid<Piece> grid, float finalRotation, float rotation)
     {
-        if(!rotating)StartCoroutine(DoRotation(grid, finalRotation, rotation));
+        StartCoroutine(DoRotation(grid, finalRotation, rotation));
     }
 
     public void ForceRotation(Grid<Piece> grid, float finalRotation)
@@ -205,12 +152,11 @@ public abstract class Piece : NetworkBehaviour
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
+        block.rotating = false;
     }
 
     private IEnumerator DoRotation(Grid<Piece> grid, float finalRotation, float rotation)
     {
-        rotating = true;
-        
         var currentRotation = finalRotation-rotation;
         currentRotation *= Mathf.Deg2Rad;
         finalRotation *=  Mathf.Deg2Rad;
@@ -239,19 +185,10 @@ public abstract class Piece : NetworkBehaviour
         {
             block.Move(new Vector2(-targetX, -targetY));
         }
-
-        if (!grid.IsInBoundsNoHeight(transform.position) || grid.GetValue(transform.position) != null)
-        {
-            GoToFinalPosition(grid);
-        }
-        else
-        {
-            if(block.GetPieces()[0] != null) transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
-        }
-
-        if (fallen) transform.position = _finalPos;
         
-        rotating = false;
+        if(block.GetPieces()[0] != null) transform.position = block.GetPieces()[0].transform.position + new Vector3(targetX, targetY);
+        
+        block.rotating = false;
     }
     
     public void GoToFinalPosition(Grid<Piece> grid)

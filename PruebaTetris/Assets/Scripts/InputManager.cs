@@ -21,15 +21,18 @@ public class InputManager : NetworkBehaviour
     private int _rotation;
 
     private PieceController _pieceController;
+    private AbilityController _abilityController;
     private void Start()
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         _myInput = gameObject.GetComponent<PlayerInput>();
         _pieceController = gameObject.GetComponent<PieceController>();
+        _abilityController = GetComponent<AbilityController>();
 
-        
-        if (!(IsClient || IsHost) && SpawnController.Instance.playerCount > 1)
+        if (NetworkManager.Singleton == null && SpawnController.Instance.playerCount > 1)
         {
             playerTwo = SpawnController.Instance.SetPlayerID() == 1;
+            SpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
             _myInput.SwitchCurrentActionMap("TwoPlayers");
         }
         else
@@ -87,6 +90,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnHold(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(playerTwo || _pieceController.currentBlock == null) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
@@ -96,10 +100,21 @@ public class InputManager : NetworkBehaviour
     
     public void OnInstantDown(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(playerTwo) return;
         if (context.started)
         {
             _pieceController.InstantDown();
+        }
+    }
+
+    public void OnAbility(InputAction.CallbackContext context)
+    {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
+        if(playerTwo) return;
+        if (context.started)
+        {
+            _abilityController.UseAbility();
         }
     }
 
@@ -155,6 +170,7 @@ public class InputManager : NetworkBehaviour
     
     public void OnHold1(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(!playerTwo) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
@@ -164,16 +180,29 @@ public class InputManager : NetworkBehaviour
     
     public void OnInstantDown1(InputAction.CallbackContext context)
     {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if(!playerTwo) return;
         if (context.started)
         {
             _pieceController.InstantDown();
         }
     }
+    
+    public void OnAbility1(InputAction.CallbackContext context)
+    {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
+        if(!playerTwo) return;
+        if (context.started)
+        {
+            _abilityController.UseAbility();
+        }
+    }
 
     #endregion
     public void ManageInput()
     {
+        if(_pieceController.currentBlock == null) return;
+        
         if (_moveDirection.magnitude > 0 && Time.time - _lastMove >= moveCooldown)
         {
             _lastMove = Time.time;

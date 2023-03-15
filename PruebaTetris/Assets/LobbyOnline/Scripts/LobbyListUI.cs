@@ -9,22 +9,29 @@ public class LobbyListUI : MonoBehaviour {
 
 
     public static LobbyListUI Instance { get; private set; }
-
+    public static event Action onLeaveLobbyList;
 
 
     [SerializeField] private Transform lobbySingleTemplate;
     [SerializeField] private Transform container;
     [SerializeField] private Button refreshButton;
     [SerializeField] private Button createLobbyButton;
+    [SerializeField] private Button leaveLobbyButton;
 
 
     private void Awake() {
         Instance = this;
+        AuthenticateUI.onQuickJoin += Hide;
 
         lobbySingleTemplate.gameObject.SetActive(false);
 
         refreshButton.onClick.AddListener(RefreshButtonClick);
         createLobbyButton.onClick.AddListener(CreateLobbyButtonClick);
+        leaveLobbyButton.onClick.AddListener(() =>
+        {
+            onLeaveLobbyList?.Invoke();
+            Hide();
+        });
     }
 
     private void Start() {

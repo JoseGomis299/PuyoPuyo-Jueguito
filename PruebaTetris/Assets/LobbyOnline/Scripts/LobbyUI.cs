@@ -15,7 +15,6 @@ public class LobbyUI : MonoBehaviour {
     [SerializeField] private Transform playerSingleTemplate;
     [SerializeField] private Transform container;
     [SerializeField] private TextMeshProUGUI lobbyNameText;
-    [SerializeField] private TextMeshProUGUI playerCountText;
     [SerializeField] private Button changeKpopButton;
     [SerializeField] private Button changeMetalButton;
     [SerializeField] private Button changeRapButton;
@@ -60,6 +59,10 @@ public class LobbyUI : MonoBehaviour {
         Hide();
     }
 
+    public void DisablePlayButton()
+    {
+        PlayGameButton.interactable = false;
+    }
     private void LobbyManager_OnLeftLobby(object sender, System.EventArgs e) {
         ClearLobby();
         Hide();
@@ -85,12 +88,13 @@ public class LobbyUI : MonoBehaviour {
                 LobbyManager.Instance.IsLobbyHost() &&
                 player.Id != AuthenticationService.Instance.PlayerId // Don't allow kick self
             );
+            
+            if(!LobbyManager.Instance.IsLobbyHost())DisablePlayButton();
 
             lobbyPlayerSingleUI.UpdatePlayer(player);
         }
 
         lobbyNameText.text = lobby.Name;
-        playerCountText.text = lobby.Players.Count + "/" + lobby.MaxPlayers;
         Show();
     }
 

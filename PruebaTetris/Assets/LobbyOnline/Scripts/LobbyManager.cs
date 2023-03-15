@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
@@ -10,9 +11,11 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LobbyManager : NetworkBehaviour {
+public class LobbyManager : NetworkBehaviour
+{
 
 
+    public event Action onAuthenticationComplete;
     public static LobbyManager Instance { get; private set; }
 
 
@@ -48,6 +51,7 @@ public class LobbyManager : NetworkBehaviour {
     private Lobby joinedLobby;
     public string playerName { get; private set; }
 
+    private bool authenticated;
 
     private void Awake() {
         Instance = this;
@@ -58,8 +62,16 @@ public class LobbyManager : NetworkBehaviour {
         HandleLobbyHeartbeat();
         HandleLobbyPolling();
     }
-
-    public async void Authenticate(string playerName) {
+    
+    public async void Authenticate(string playerName)
+    {
+        if(authenticated) { 
+            OnLeftLobby?.Invoke(this, EventArgs.Empty); 
+            RefreshLobbyList();  
+            onAuthenticationComplete?.Invoke(); 
+            return;}
+        authenticated = true;
+        
         this.playerName = playerName;
         InitializationOptions initializationOptions = new InitializationOptions();
         initializationOptions.SetProfile(playerName);
@@ -74,6 +86,14 @@ public class LobbyManager : NetworkBehaviour {
         };
 
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        onAuthenticationComplete?.Invoke();
+    }
+
+    public void DeAuthenticate()
+    {
+        if(!authenticated) return;
+        AuthenticationService.Instance.SignOut();
+        AuthenticationService.Instance.ClearSessionToken();
     }
 
     private void HandleRefreshLobbyList() {
@@ -127,9 +147,11 @@ public class LobbyManager : NetworkBehaviour {
                     if (!IsLobbyHost())
                     {
                         Relay.Instance.JoinRelay(joinedLobby.Data[KEY_START_GAME].Value);
+                        CreateAbility();
                     }
                     if(IsLobbyHost())
                     {
+                        CreateAbility();
                         await Task.Delay(100);
                         joinedLobby = null;
                         NetworkManager.Singleton.SceneManager.LoadScene("1v1(Online)", LoadSceneMode.Single);
@@ -138,6 +160,28 @@ public class LobbyManager : NetworkBehaviour {
                 }
             }
         }
+    }
+
+    private void CreateAbility()
+    {
+        string playerId = AuthenticationService.Instance.PlayerId;
+        Player player = null;
+        
+        foreach (var p in joinedLobby.Players)
+        {
+            if (p.Id.Equals(playerId))
+            {
+                player = p;
+                break;
+            }
+        }
+        
+        PlayerCharacter playerCharacter =
+            Enum.Parse<PlayerCharacter>(player.Data[KEY_PLAYER_CHARACTER].Value);
+        var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
+        CharacterAbilityData characterAbilityData = new CharacterAbilityData(characterSo.characterBody, characterSo.id);
+        string json = JsonUtility.ToJson(characterAbilityData, true);
+        File.WriteAllText(Application.persistentDataPath + "/AbilitieDataFile.json", json);
     }
 
     public Lobby GetJoinedLobby() {
@@ -257,7 +301,7 @@ public class LobbyManager : NetworkBehaviour {
 
                 Lobby lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, playerId, options);
                 joinedLobby = lobby;
-
+                
                 OnJoinedLobbyUpdate?.Invoke(this, new LobbyEventArgs { lobby = joinedLobby });
             } catch (LobbyServiceException e) {
                 Debug.Log(e);
@@ -291,15 +335,16 @@ public class LobbyManager : NetworkBehaviour {
     }
 
     public async void QuickJoinLobby() {
-        try {
-            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions();
+        try
+        {
+            QuickJoinLobbyOptions options = new QuickJoinLobbyOptions { Player = GetPlayer() };
 
             Lobby lobby = await LobbyService.Instance.QuickJoinLobbyAsync(options);
             joinedLobby = lobby;
 
             OnJoinedLobby?.Invoke(this, new LobbyEventArgs { lobby = lobby });
-        } catch (LobbyServiceException e) {
-            Debug.Log(e);
+        } catch (LobbyServiceException) {
+            CreateLobby(playerName+"'s Lobby", 2, false);
         }
     }
 
@@ -336,6 +381,7 @@ public class LobbyManager : NetworkBehaviour {
             {
                 if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
                 {
+                    LobbyUI.Instance.DisablePlayButton();
                     string relayCode = await Relay.Instance.CreateRelay();
 
                     Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions

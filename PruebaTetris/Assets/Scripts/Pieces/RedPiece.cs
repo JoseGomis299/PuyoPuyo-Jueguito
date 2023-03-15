@@ -14,7 +14,7 @@ public class RedPiece : Piece
     public override IEnumerator Explosion(Grid<Piece> grid)
     {
         GetComponent<SpriteRenderer>().color = Color.white;
-        yield return new WaitForSeconds(0.15f);
+        yield return new WaitForSeconds(0.25f);
         if(IsHost || IsClient) DespawnPieceServerRpc();
         else Destroy(gameObject);
     }

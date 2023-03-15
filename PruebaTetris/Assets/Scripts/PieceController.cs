@@ -17,7 +17,7 @@ public class PieceController : NetworkBehaviour
    [SerializeField] private Piece[] availablePieces; 
    [SerializeField] private Piece[] garbagePieces; 
    public float fallSpeed = 5;
-   [HideInInspector] public int[] piecesNumbers;
+   [HideInInspector] public float fallSpeedDelta = 1;
 
    [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
@@ -41,6 +41,7 @@ public class PieceController : NetworkBehaviour
    private bool _stopPlacing;
 
    private LinkedList<Piece> _neighbours;
+   private LinkedList<Piece> _garbage;
    private LinkedList<Piece> _pieces;
 
    private bool _isOnline;
@@ -58,8 +59,8 @@ public class PieceController : NetworkBehaviour
        _isOnline = IsClient || IsHost;
        _neighbours = new LinkedList<Piece>();
        _pieces = new LinkedList<Piece>();
+       _garbage = new LinkedList<Piece>();
        nextBlocks = new Block[2]; 
-       piecesNumbers = new int[availablePieces.Length];
        _inputManager = GetComponent<InputManager>();
        InitialPosition();
        _grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
@@ -113,7 +114,8 @@ public class PieceController : NetworkBehaviour
    {
        if (_isOnline && !IsOwner) { return; }
        if(currentBlock == null) return;
-      
+
+       fallSpeed += (Time.deltaTime / 20)*fallSpeedDelta;
        currentBlock.Fall(fallSpeed);
         foreach (Block garbage in currentGarbage)
         {
@@ -129,6 +131,8 @@ public class PieceController : NetworkBehaviour
        if (_holdBlock == null)
        {
            _holdBlock = currentBlock;
+
+           currentBlock = null;
            if(!_isOnline)GenerateBlock();
            else OnlineBlockGeneration();
        }
@@ -146,13 +150,13 @@ public class PieceController : NetworkBehaviour
        if(currentBlock == null) return;
        if(!_grid.IsInBounds(currentBlock.GetPieces()[1].transform.position) || _grid.GetValue(currentBlock.GetPieces()[0].transform.position)) return;
 
-       if (currentBlock.GetPieces()[1].rotating)
+       currentBlock.fallen = true;
+       if (currentBlock.rotating)
        {
            currentBlock.GetPieces()[1].ForceRotation(_grid, currentBlock.rotation);
        }
        for (int i = 0; i < currentBlock.GetPieces().Length; i++)
        {
-           if(currentBlock.GetPieces()[i].fallen) return;
            var position = CalculateFinalPiecePosition(currentBlock.GetPieces()[i].transform.position);
            switch (currentBlock.rotation)
            {
@@ -163,8 +167,9 @@ public class PieceController : NetworkBehaviour
                default: currentBlock.GetPieces()[i].transform.position = _grid.GetCellCenter((int)position.x,(int)position.y);
                    break;
            }
-           currentBlock.GetPieces()[i].SetAdvice(true);
        }
+
+       SetPiecesValue();
    }
 
    private Vector2 CalculateFinalPiecePosition(Vector3 origin)
@@ -196,41 +201,50 @@ public class PieceController : NetworkBehaviour
 
    public void SetPiecesValue()
    {
-        StartCoroutine(_SetPiecesValue()); //Cambio de linea
-
-        if (_stopPlacing) return;
-       bool greater = false;
-       for (int i = 0; i < piecesNumbers.Length; i++)
-       {
-           if (piecesNumbers[i] >= 4)
-           {
-               greater = true;
-               break;
-           }
-       }
-
-       if (!greater)
-       {
-           if(!_isOnline)GenerateBlock();
-           else OnlineBlockGeneration();
-           return;
-       }
-
-       //StartCoroutine(_SetPiecesValue());
+       if(_stopPlacing) return;
+       
+       StartCoroutine(_SetPiecesValue());
    }
    
     private IEnumerator _SetPiecesValue()
     {
-        _stopPlacing = true;
+        if (currentBlock != null)
+        {
+            foreach (var piece in currentBlock.GetPieces())
+            {
+                piece.SetValue(_grid, this);
+            }
+            
+            GetAllPieces();
+            MakeAllFall();
+
+            //Wait until all have landed again
+            yield return new WaitUntil(() =>
+            {
+                foreach (var piece in _pieces)
+                {
+                    if (piece == null) continue;
+                    if (!piece.fallen)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+            currentBlock = null;
+        }
+
         GetActivePieces();
 
         foreach (var piece in _pieces)
         {
             if (piece == null || piece.exploded) continue;
             _neighbours.Clear();
+            _garbage.Clear();
             
             piece.justFallen = false;
-            piece.CheckNeighbours(_grid, _neighbours);
+            piece.CheckNeighbours(_grid, _neighbours, _garbage);
 
             if (_neighbours.Count >= 4)
             {
@@ -272,13 +286,20 @@ public class PieceController : NetworkBehaviour
                 //sumar puntuación aquí, "_neighbours.Count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
-                    AddToPieceNumber(p, -1);
+                    p.Explode(_grid);
+                }
+                foreach (var p in _garbage)
+                {
                     p.Explode(_grid);
                 }
             }
             else
             {
                 foreach (var p in _neighbours)
+                {
+                    p.check = false;
+                }
+                foreach (var p in _garbage)
                 {
                     p.check = false;
                 }
@@ -322,9 +343,14 @@ public class PieceController : NetworkBehaviour
             if (piece == null || piece.exploded) continue;
             
             _neighbours.Clear();
-            piece.CheckNeighbours( _grid,  _neighbours);
+            _garbage.Clear();
+            piece.CheckNeighbours( _grid,  _neighbours, _garbage);
 
             foreach (var p in _neighbours)
+            {
+                p.check = false;
+            }
+            foreach (var p in _garbage)
             {
                 p.check = false;
             }
@@ -441,22 +467,9 @@ public class PieceController : NetworkBehaviour
             Destroy(piece.gameObject);
         }
         
-        for (int i = 0; i < availablePieces.Length; i++)
-        {
-            piecesNumbers[i] = 0;
-        }
+        if(!_isOnline)GenerateBlock();
+        else OnlineBlockGeneration();
     }
-    public void AddToPieceNumber(Piece piece, int value)
-    {
-        for (int i = 0; i < availablePieces.Length; i++)
-        {
-            if (!availablePieces[i].Equals(piece)) continue;
-
-            piecesNumbers[i] += value;
-            break;
-        }
-    }
-
     private void InitialPosition()
     {
         if (!_isOnline)
@@ -505,7 +518,6 @@ public class PieceController : NetworkBehaviour
         var id = serverRpcParams.Receive.SenderClientId;
         if (!NetworkManager.ConnectedClients.ContainsKey(id)) return;
         var pieceController = NetworkManager.ConnectedClients[id].PlayerObject.gameObject.GetComponent<PieceController>();
-        pieceController.gameObject.name = "Grid " + id;
 
         if (currentBlock == null)
         {
@@ -516,11 +528,11 @@ public class PieceController : NetworkBehaviour
                 nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
                     Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
                 
-                nextBlocks[i].GetPieces()[0].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
-                nextBlocks[i].GetPieces()[1].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+                for (int j = 0; j < nextBlocks[i].GetPieces().Length; j++) 
+                    nextBlocks[i].GetPieces()[j].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
             }
-            currentBlock.GetPieces()[0].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
-            currentBlock.GetPieces()[1].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+            for (int i = 0; i < currentBlock.GetPieces().Length; i++) 
+                currentBlock.GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
         }
         else
         {
@@ -530,14 +542,12 @@ public class PieceController : NetworkBehaviour
             {
                 nextBlocks[i] = nextBlocks[i + 1];
             }
-            nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
+            nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
 
-            nextBlocks[^1].GetPieces()[0].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
-            nextBlocks[^1].GetPieces()[1].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+            for (int i = 0; i <  nextBlocks[^1].GetPieces().Length; i++) 
+                nextBlocks[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
         }
 
-        pieceController.currentBlock = currentBlock;
-        pieceController.nextBlocks = nextBlocks;
         
         currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
         pieceController.currentBlock.SetPositionInGrid(Random.Range(0, pieceController._grid.GetWidth()), pieceController._grid.GetHeight());
@@ -559,7 +569,7 @@ public class PieceController : NetworkBehaviour
             new(nextBlocks[1].GetPieces()[0].GetComponent<NetworkObject>()),
             new(nextBlocks[1].GetPieces()[1].GetComponent<NetworkObject>())
         };
-        Debug.Log(id);
+        
         SendClientsBlocksClientRpc(id, currentPieces, nextPieces1, nextPieces2);
     }
 
@@ -568,7 +578,6 @@ public class PieceController : NetworkBehaviour
     {
         if (!IsOwnedByServer)
         {
-            gameObject.name = "GridClient " + id;
             currentPieces[0].TryGet(out var piece0);
             currentPieces[1].TryGet(out var piece1);
             currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this); 
@@ -583,6 +592,7 @@ public class PieceController : NetworkBehaviour
             {
                 nextBlocks[i].SetPosition(nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
             }
+
         }
     }
     

@@ -22,6 +22,7 @@ public class LobbyCreateUI : MonoBehaviour {
 
     private void Awake() {
         Instance = this;
+        AuthenticateUI.onQuickJoin += Hide;
 
         createButton.onClick.AddListener(() => {
             LobbyManager.Instance.CreateLobby(
