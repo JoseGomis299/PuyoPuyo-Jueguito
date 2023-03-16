@@ -10,8 +10,6 @@ public abstract class Piece : NetworkBehaviour
     [HideInInspector] public bool fallen;
     [HideInInspector] public bool justFallen;
     public bool exploded { get; protected set; }
-    [SerializeField] protected GameObject[] unionPrefabs;
-
     public Block block{ get; private set; }
     
     public void SetBlockReference(Block block)
@@ -41,6 +39,8 @@ public abstract class Piece : NetworkBehaviour
         {
             childTrans.gameObject.SetActive(false);
         }
+        if(NetworkManager != null) GetComponent<PieceNetwork>().SetJoints(4, false);
+
 
         for (int i = 0; i < cardinalPieces.Length; i++)
         {
@@ -52,12 +52,16 @@ public abstract class Piece : NetworkBehaviour
                      switch (i)
                      {
                          case 0: transform.GetChild(3).gameObject.SetActive(true); //ACTIVAR PREFAB DERECHA
+                                if(NetworkManager != null) GetComponent<PieceNetwork>().SetJoints(0, true);
                              break;
                          case 1: transform.GetChild(1).gameObject.SetActive(true); //ACTIVAR PREFAB IZQUIERDA
+                                 if(NetworkManager != null) GetComponent<PieceNetwork>().SetJoints(1, true);
                              break;
                          case 2: transform.GetChild(0).gameObject.SetActive(true); //ACTIVAR PREFAB ARRIBA
+                                if(NetworkManager != null) GetComponent<PieceNetwork>().SetJoints(2, true);
                              break;
                          case 3:transform.GetChild(2).gameObject.SetActive(true); //ACTIVAR PREFAB ABAJO
+                                if(NetworkManager != null) GetComponent<PieceNetwork>().SetJoints(3, true);
                              break;
                      }
                     if(!cardinalPieces[i].check)cardinalPieces[i].CheckNeighbours(grid, list, garbageList);
@@ -76,12 +80,11 @@ public abstract class Piece : NetworkBehaviour
 
     public bool FallCoroutine(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
     {
-        var movedPiecePosition = new Vector3(transform.position.x, transform.position.y+ transform.position.z) + Vector3.down * (fallSpeed * Time.deltaTime);
         check = false;
 
         grid.GetXY(transform.position, out var x, out var y);
 
-        if ((grid.GetValue(x,y-1) == null || grid.GetValue(x,y-1) != null && !grid.GetValue(x,y-1).fallen) && grid.IsInBoundsNoHeight(x,y-1))
+        if (grid.GetValue(x,y-1) == null && grid.IsInBoundsNoHeight(x, y-1))
         {
             fallen = false;
             justFallen = true;
@@ -89,6 +92,14 @@ public abstract class Piece : NetworkBehaviour
             return false;
         }
         
+        if (y >= grid.GetHeight())
+        {
+            pieceController.CleanStage();
+            if (NetworkManager != null) Despawn();
+            else Destroy(gameObject);
+        }
+
+        fallen = true;
         return true;
     }
 
@@ -99,7 +110,6 @@ public abstract class Piece : NetworkBehaviour
         {
             yield return null;
         }
-
     }
 
     public bool Fall(Grid<Piece> grid, float fallSpeed, PieceController pieceController)
@@ -111,10 +121,10 @@ public abstract class Piece : NetworkBehaviour
 
         if (grid.GetValue(x,y) == null && grid.IsInBoundsNoHeight(x,y))
         {
-           transform.position = nextPos;
+            transform.position = nextPos;
            return false;
         }
-        
+
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x,y) != null) y++;
         transform.position = grid.GetCellCenter(x, y);
 
@@ -127,7 +137,6 @@ public abstract class Piece : NetworkBehaviour
 
     public void SetValue(Grid<Piece> grid, PieceController pieceController)
     {
-        Debug.Log(gameObject.name);
         grid.SetValue(transform.position, this);
         justFallen = true;
         fallen = true;
@@ -209,6 +218,11 @@ public abstract class Piece : NetworkBehaviour
     public abstract void Explode(Grid<Piece> grid);
     public abstract IEnumerator Explosion(Grid<Piece> grid);
     public abstract bool Equals(Piece piece);
+
+    public void Despawn()
+    {
+        DespawnPieceServerRpc();
+    }
 
     [ServerRpc]
     protected void DespawnPieceServerRpc()

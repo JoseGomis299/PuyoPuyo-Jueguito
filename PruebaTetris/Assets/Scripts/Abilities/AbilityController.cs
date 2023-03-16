@@ -7,7 +7,7 @@ using UnityEngine;
 public class AbilityController : MonoBehaviour
 {
     private ICharacterAbility myAbility;
-    private PieceController enemyPieceController;
+    public PieceController enemyPieceController { get; private set; }
 
     private void Start()
     {
