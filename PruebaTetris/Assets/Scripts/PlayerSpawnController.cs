@@ -5,9 +5,9 @@ using System.IO;
 using Unity.Netcode;
 using UnityEngine;
 
-public class SpawnController : NetworkBehaviour
+public class PlayerSpawnController : NetworkBehaviour
 {
-    public static SpawnController Instance;
+    public static PlayerSpawnController Instance;
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private GameObject waitingPlayers;
     public int playerCount { get; private set; }

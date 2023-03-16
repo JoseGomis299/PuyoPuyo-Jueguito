@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>Class <c>Piece</c> a single Piece</summary>
+///
 public abstract class Piece : NetworkBehaviour
 {
     [HideInInspector] public bool check;
