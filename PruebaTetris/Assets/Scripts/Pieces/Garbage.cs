@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>Class <c>Garbage</c>: A special type of Piece that doesn't combine with others and only explodes by exploding the adjacent pieces</summary>
+///
 public class Garbage : Piece
 {
     private int health = 1;

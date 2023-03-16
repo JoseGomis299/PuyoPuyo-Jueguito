@@ -29,10 +29,10 @@ public class InputManager : NetworkBehaviour
         _pieceController = gameObject.GetComponent<PieceController>();
         _abilityController = GetComponent<AbilityController>();
 
-        if (NetworkManager.Singleton == null && SpawnController.Instance.playerCount > 1)
+        if (NetworkManager.Singleton == null && PlayerSpawnController.Instance.playerCount > 1)
         {
-            playerTwo = SpawnController.Instance.SetPlayerID() == 1;
-            SpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
+            playerTwo = PlayerSpawnController.Instance.SetPlayerID() == 1;
+            PlayerSpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
             _myInput.SwitchCurrentActionMap("TwoPlayers");
         }
         else

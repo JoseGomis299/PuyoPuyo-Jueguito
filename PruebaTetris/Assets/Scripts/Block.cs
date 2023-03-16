@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>Class <c>Block</c> the block structure that a player controls</summary>
+///
 public class Block
 {
     private readonly Piece[] pieceList;
@@ -30,20 +32,7 @@ public class Block
             pieceList[i].SetBlockReference(this);
         }
     }
-
-    public Block(Piece piece1, Grid<Piece> grid, PieceController pieceController)
-    {
-        _pieceController = pieceController;
-        this.grid = grid;
-        rotation = 0;
-        pieceList = new Piece[] { piece1 };
-
-        for (int i = 0; i < pieceList.Length; i++)
-        {
-            pieceList[i].SetBlockReference(this);
-        }
-    }
-
+    
     public void Rotate(int rotation)
     {
         if(pieceList[0] == null || pieceList[1] == null) return;
@@ -59,13 +48,22 @@ public class Block
 
         var rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
         grid.GetXY(rotatedPosition, out var x, out var y);
-        
+
+        bool hasJumped = false;
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x, y) != null)
         {
             if (!MoveForRotation(new Vector2(-xFactor, -yFactor)))
             {
-                rotating = false;
-                return;
+                if (!hasJumped && grid.GetValue(x, y+1) == null)
+                {
+                    hasJumped = true;
+                    MoveForRotation(Vector2.up);
+                }
+                else
+                {
+                    rotating = false;
+                    return;
+                }
             }
             rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
             grid.GetXY(rotatedPosition, out x, out y);
