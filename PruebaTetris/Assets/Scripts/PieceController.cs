@@ -22,12 +22,8 @@ public class PieceController : NetworkBehaviour
    [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
    [SerializeField] private float cellSize = 1;
-
-   [Header("Grid Rival")]
-   [SerializeField] private PieceController rival;
-
-
-    private InputManager _inputManager;
+   
+   private InputManager _inputManager;
 
    public Block currentBlock;
    public LinkedList<Piece> currentGarbage;
@@ -51,12 +47,12 @@ public class PieceController : NetworkBehaviour
    private int cantidadBasuraTirar = 0;
    private int cantidadBasuraRecibir = 0;
    private bool recibiendoBasura = false;
-  
+
    private void Start()
    {
         currentGarbage = new LinkedList<Piece>();
 
-       _isOnline = IsClient || IsHost;
+       _isOnline = NetworkManager != null;
        _neighbours = new LinkedList<Piece>();
        _pieces = new LinkedList<Piece>();
        _garbage = new LinkedList<Piece>();
@@ -67,7 +63,7 @@ public class PieceController : NetworkBehaviour
        if (_isOnline && !IsOwner) { return; }
        
        if(!_isOnline)GenerateBlock();
-       else GenerateBlockServerRpc();
+       else GenerateBlockServerRpc(recibiendoBasura);
 
    }
 
@@ -106,6 +102,7 @@ public class PieceController : NetworkBehaviour
         }
         else
         {
+            StopAllCoroutines();
             StartCoroutine(recibirBasura());
         } 
    }
@@ -196,7 +193,7 @@ public class PieceController : NetworkBehaviour
 
    public void SetPiecesValue()
    {
-       if(_stopPlacing) return;
+       if(_stopPlacing || (_isOnline && !IsOwner)) return;
        
        StartCoroutine(_SetPiecesValue());
    }
@@ -332,27 +329,20 @@ public class PieceController : NetworkBehaviour
         
         //If there it is a combo start again
         bool startAgain = false;
-        GetAllPieces();
         foreach (var piece in _pieces)
         {
             if (piece == null || piece.exploded) continue;
             
             _neighbours.Clear();
-            _garbage.Clear();
             piece.CheckNeighbours( _grid,  _neighbours, _garbage);
 
             foreach (var p in _neighbours)
             {
                 p.check = false;
             }
-            foreach (var p in _garbage)
-            {
-                p.check = false;
-            }
-            
+
             if (_neighbours.Count < 4) continue;
             startAgain = true;
-            break;
         }
 
         _stopPlacing = startAgain;
@@ -365,13 +355,31 @@ public class PieceController : NetworkBehaviour
             else OnlineBlockGeneration();
             if (combo > 0)
             {
-                rival.lanzarBasura(cantidadBasuraTirar);
+                if(!_isOnline)GetComponent<AbilityController>().enemyPieceController.lanzarBasura(cantidadBasuraTirar);
+                else EnemyThrowGarbageServerRpc(cantidadBasuraTirar);
                 cantidadBasuraTirar = 0;
                 combo = 0;
             }
 
         }
         yield return null;
+    }
+
+    [ServerRpc]
+    private void EnemyThrowGarbageServerRpc(int garbageCount, ServerRpcParams serverRpcParams = default)
+    {
+        var id = serverRpcParams.Receive.SenderClientId;
+        var enemy = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<AbilityController>().enemyPieceController;
+
+        var enemyRef = new NetworkObjectReference(enemy.GetComponent<NetworkObject>());
+        EnemyThrowGarbageClientRpc(garbageCount, enemyRef);
+    }
+    
+    [ClientRpc]
+    private void EnemyThrowGarbageClientRpc(int garbageCount, NetworkObjectReference reference)
+    {
+        reference.TryGet(out var e);
+        e.GetComponent<PieceController>().lanzarBasura(garbageCount);
     }
 
     private void lanzarBasura(int numBasura)
@@ -394,25 +402,30 @@ public class PieceController : NetworkBehaviour
                 posY++;
             }
 
-
-            Piece g = Instantiate(garbagePieces[0]);
-            g.SetPositionInGrid(posX, _grid.GetHeight() + posY,_grid);
-            currentGarbage.AddLast(g);
+            if (!_isOnline)
+            {
+                Piece g = Instantiate(garbagePieces[0]);
+                g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+                currentGarbage.AddLast(g);
+            }
+            else GenerateGarbageServerRpc(posX, posY);
             posX++;
         }
+        //Esperar a que se generen todas las piezas
+        if(_isOnline)  yield return new WaitForSeconds(0.2f);
+        
         foreach (Piece garbage in currentGarbage)
         {
             if (garbage == null) continue;
             garbage.FallCoroutine(_grid, fallSpeed, this);
-            Debug.Log(garbage);
         }
-        Debug.Log("Recibiendo Basura");
         
         //Esperar a que esten todas colocadas
         yield return new WaitUntil(()=> 
         {
             foreach (var gar in currentGarbage)
             {
+                if(gar == null) continue;
                 if (!gar.fallen)
                 {
                     return false;
@@ -425,7 +438,8 @@ public class PieceController : NetworkBehaviour
         //Continuar
         currentGarbage.Clear();
         recibiendoBasura = false;
-        GenerateBlock();
+        if(!_isOnline)GenerateBlock();
+        else OnlineBlockGeneration();
     }
 
     private void GetActivePieces()
@@ -460,23 +474,29 @@ public class PieceController : NetworkBehaviour
     }
     public void CleanStage()
     {
+        if(_isOnline && !IsOwner) return;
         for (int x = 0; x < _grid.GetWidth(); x++)
         {
             for (int y = 0; y < _grid.GetHeight(); y++)
             {
                 if (_grid.GetValue(x, y) != null)
                 {
-                    Destroy(_grid.GetValue(x, y).gameObject);
+                    if(!_isOnline)Destroy(_grid.GetValue(x, y).gameObject);
+                    else _grid.GetValue(x,y).Despawn();
                     _grid.SetValue(x, y, null);
                 }
             }
         }
 
-        foreach (var piece in currentBlock.GetPieces())
+        if (currentBlock != null)
         {
-            Destroy(piece.gameObject);
+            foreach (var piece in currentBlock.GetPieces())
+            {
+                if (!_isOnline) Destroy(piece.gameObject);
+                else piece.Despawn();
+            }
         }
-        
+
         if(!_isOnline)GenerateBlock();
         else OnlineBlockGeneration();
     }
@@ -518,73 +538,128 @@ public class PieceController : NetworkBehaviour
     
     private void OnlineBlockGeneration()
     {
-        GenerateBlockServerRpc();
+        if(_isOnline && !IsOwner) return;
+        GenerateBlockServerRpc(recibiendoBasura);
         held = false;
     }
 
     [ServerRpc]
-    private void GenerateBlockServerRpc(ServerRpcParams serverRpcParams = default)
+    private void GenerateBlockServerRpc(bool receivingGarbage, ServerRpcParams serverRpcParams = default)
     {
         var id = serverRpcParams.Receive.SenderClientId;
-        if (!NetworkManager.ConnectedClients.ContainsKey(id)) return;
-        var pieceController = NetworkManager.ConnectedClients[id].PlayerObject.gameObject.GetComponent<PieceController>();
 
-        if (currentBlock == null)
+        if (!receivingGarbage)
         {
-            currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
-                
+            if (nextBlocks[0] == null)
+            {
+                currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+
+                for (int i = 0; i < nextBlocks.Length; i++)
+                {
+                    nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                        Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
+
+                    for (int j = 0; j < nextBlocks[i].GetPieces().Length; j++)
+                        nextBlocks[i].GetPieces()[j].transform.GetComponent<NetworkObject>()
+                            .SpawnWithOwnership(id, true);
+                }
+
+                for (int i = 0; i < currentBlock.GetPieces().Length; i++)
+                    currentBlock.GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+            }
+            else
+            {
+                currentBlock = nextBlocks[0];
+
+                for (int i = 0; i < nextBlocks.Length - 1; i++)
+                {
+                    nextBlocks[i] = nextBlocks[i + 1];
+                }
+
+                nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+
+                for (int i = 0; i < nextBlocks[^1].GetPieces().Length; i++)
+                    nextBlocks[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+            }
+
+
+            currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
             for (int i = 0; i < nextBlocks.Length; i++)
             {
-                nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
-                
-                for (int j = 0; j < nextBlocks[i].GetPieces().Length; j++) 
-                    nextBlocks[i].GetPieces()[j].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+                nextBlocks[i].SetPosition(nextTransforms[i].position, i == 0 ? 0.75f : 0.75f * 0.5f * i);
             }
-            for (int i = 0; i < currentBlock.GetPieces().Length; i++) 
-                currentBlock.GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+
+            NetworkObjectReference[] currentPieces =
+            {
+                new(currentBlock.GetPieces()[0].GetComponent<NetworkObject>()),
+                new(currentBlock.GetPieces()[1].GetComponent<NetworkObject>())
+            };
+            NetworkObjectReference[] nextPieces1 =
+            {
+                new(nextBlocks[0].GetPieces()[0].GetComponent<NetworkObject>()),
+                new(nextBlocks[0].GetPieces()[1].GetComponent<NetworkObject>())
+            };
+            NetworkObjectReference[] nextPieces2 =
+            {
+                new(nextBlocks[1].GetPieces()[0].GetComponent<NetworkObject>()),
+                new(nextBlocks[1].GetPieces()[1].GetComponent<NetworkObject>())
+            };
+
+            SendClientsBlocksClientRpc(currentPieces, nextPieces1, nextPieces2);
         }
         else
         {
-            currentBlock = nextBlocks[0];
-    
-            for (int i = 0; i < nextBlocks.Length-1; i++)
+            ClientRpcParams clientRpcParams = new ClientRpcParams
             {
-                nextBlocks[i] = nextBlocks[i + 1];
-            }
-            nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
-
-            for (int i = 0; i <  nextBlocks[^1].GetPieces().Length; i++) 
-                nextBlocks[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[]{id}
+                }
+            };
+            ThrowGarbageClientRpc(clientRpcParams);
         }
+    }
 
-        
-        currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
-        pieceController.currentBlock.SetPositionInGrid(Random.Range(0, pieceController._grid.GetWidth()), pieceController._grid.GetHeight());
-        for (int i = 0; i < nextBlocks.Length; i++)
+    [ServerRpc (RequireOwnership = false)]
+    private void GenerateGarbageServerRpc(int x, int y, ServerRpcParams serverRpcParams = default)
+    {
+        var id = serverRpcParams.Receive.SenderClientId;
+        ClientRpcParams clientRpcParams = new ClientRpcParams
         {
-            nextBlocks[i].SetPosition(nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
-            pieceController.nextBlocks[i].SetPosition(pieceController.nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
-        }
-        
-        NetworkObjectReference[] currentPieces = {
-            new(currentBlock.GetPieces()[0].GetComponent<NetworkObject>()),
-            new(currentBlock.GetPieces()[1].GetComponent<NetworkObject>())
-        };
-        NetworkObjectReference[] nextPieces1 = {
-            new(nextBlocks[0].GetPieces()[0].GetComponent<NetworkObject>()),
-            new(nextBlocks[0].GetPieces()[1].GetComponent<NetworkObject>())
-        };
-        NetworkObjectReference[] nextPieces2 = {
-            new(nextBlocks[1].GetPieces()[0].GetComponent<NetworkObject>()),
-            new(nextBlocks[1].GetPieces()[1].GetComponent<NetworkObject>())
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[]{id}
+            }
         };
         
-        SendClientsBlocksClientRpc(id, currentPieces, nextPieces1, nextPieces2);
+        Piece g = GameObject.Instantiate(garbagePieces[0], Vector3.right*30, quaternion.identity);
+        g.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+
+        NetworkObjectReference garbageReference = new NetworkObjectReference(g.GetComponent<NetworkObject>());
+        SetGarbageClientRpc(garbageReference, x, y, clientRpcParams);
     }
 
     [ClientRpc]
-    private  void SendClientsBlocksClientRpc(ulong id, NetworkObjectReference[] currentPieces, NetworkObjectReference[] nextPieces1, NetworkObjectReference[] nextPieces2)
+    private void ThrowGarbageClientRpc(ClientRpcParams clientRpcParams)
+    {
+        StopAllCoroutines();
+        StartCoroutine(recibirBasura());
+    }
+
+    [ClientRpc]
+    private void SetGarbageClientRpc(NetworkObjectReference garbageRef, int posX, int posY, ClientRpcParams clientRpcParams)
+    {
+        garbageRef.TryGet(out var garbage);
+        var g = garbage.GetComponent<Piece>();
+        
+        g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+        currentGarbage.AddLast(g);
+    }
+
+    [ClientRpc]
+    private  void SendClientsBlocksClientRpc(NetworkObjectReference[] currentPieces, NetworkObjectReference[] nextPieces1, NetworkObjectReference[] nextPieces2)
     {
         if (!IsOwnedByServer)
         {

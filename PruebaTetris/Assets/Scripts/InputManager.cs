@@ -46,12 +46,14 @@ public class InputManager : NetworkBehaviour
     public void OnMove(InputAction.CallbackContext context)
     {
         if(playerTwo) return;
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         _moveDirection = context.ReadValue<Vector2>();
     }
 
     public void OnDown(InputAction.CallbackContext context)
     {
         if(playerTwo) return;
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if (context.started)
         {
             _pieceController.fallSpeed *= fallSpeedBoost;
@@ -65,6 +67,7 @@ public class InputManager : NetworkBehaviour
     public void OnRotateRight(InputAction.CallbackContext context)
     {
         if(playerTwo) return;
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if (context.started)
         {
             _rotation = 90;
@@ -78,6 +81,7 @@ public class InputManager : NetworkBehaviour
     public void OnRotateLeft(InputAction.CallbackContext context)
     {
         if(playerTwo) return;
+        if (NetworkManager.Singleton != null && !IsOwner) return;
         if (context.started)
         {
             _rotation = -90;

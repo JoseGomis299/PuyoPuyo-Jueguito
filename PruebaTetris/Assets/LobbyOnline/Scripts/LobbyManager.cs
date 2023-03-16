@@ -381,7 +381,7 @@ public class LobbyManager : NetworkBehaviour
             {
                 if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
                 {
-                    LobbyUI.Instance.DisablePlayButton();
+                    LobbyUI.Instance.SetPlayButton(false);
                     string relayCode = await Relay.Instance.CreateRelay();
 
                     Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions
