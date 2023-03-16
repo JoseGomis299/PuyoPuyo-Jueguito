@@ -59,8 +59,22 @@ public class AbilitiesNetwork : NetworkBehaviour
                     }, 5f);
                 }
             };
-            case 1: return (mine, enemy) => { };
-            case 2: return (mine, enemy) => { };
+            case 1: return (mine, enemy) => { 
+                if(enemy.IsOwner) return;
+                
+                int garbageCount = mine.RemoveGarbage();
+                if(garbageCount == 0) return;
+                
+                mine.EnemyThrowGarbageServerRpc(garbageCount / 2, 0);
+                usingAbility = false;
+            };
+            case 2: return (mine, enemy) =>
+            {
+                if(enemy.IsOwner) return;
+                
+                mine.EnemyThrowGarbageServerRpc(0, 12);
+                usingAbility = false;
+            };
             case 3: return (mine, enemy) => { };
         }
 
