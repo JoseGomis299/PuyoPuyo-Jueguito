@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
+using TMPro;
 
 /// <summary>Class <c>PieceController</c> the controller for a Player's Grid</summary>
 ///
@@ -27,6 +28,13 @@ public class PieceController : NetworkBehaviour
    [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
    [SerializeField] private float cellSize = 1;
+
+    [Header("Garbage Data")]
+    [SerializeField] private int garbageCombo = 6;
+    [SerializeField] private int garbageSimple = 1;
+
+    private TMP_Text _garbageIndicator;
+    private PieceController _rival;
    
    //************REFERENCES**************
    
@@ -90,6 +98,7 @@ public class PieceController : NetworkBehaviour
        // INITIALISE ALL VARIABLES 
        _isOnline = NetworkManager != null;
 
+       _rival = GetComponent<AbilityController>().enemyPieceController;
        _currentGarbage = new LinkedList<Piece>();
         _neighbours = new LinkedList<Piece>();
         _pieces = new LinkedList<Piece>();
@@ -499,39 +508,47 @@ public class PieceController : NetworkBehaviour
             if (_neighbours.Count >= 4)
             {
                 //Combos and garbage
+
+                //Si se hace mas de una linea, deja de ser combo simple
                 if (combo == 1)
                 {
-                    _garbageQuantityThrow -= 1;
+                    _garbageQuantityThrow -= garbageSimple;
                 }
 
                 combo++;
 
-                _garbageQuantityThrow += _neighbours.Count - 4;
+                int cantidadbasuratirar = 0;
 
+                //Por cada pieza "extra" tiramos uno mas de basura
+                cantidadbasuratirar += _neighbours.Count - 4;
+
+                //Combo normal
                 if (combo > 1)
                 {
-                    //int cantidadbasuratirar = 6 - cantidadbasura;
-                    //int cantidadbasurarecuperar = 6 - cantidadbasuratirar;
-
-
-                    /*if (cantidadbasurarecuperar < 0)
-                    {
-                        cantidadbasurarecuperar = 0;
-                    }*/
-
-                    /*if (cantidadbasura < 0)
-                    {
-                        cantidadbasura = 0;
-                    }*/
-                    _garbageQuantityThrow += 6;
-                    //rival.cantidadbasura += cantidadbasuratirar;
-                    Debug.Log("combo: " + combo + " - " + "garbage: " + _garbageQuantityThrow);
-                }
+                    cantidadbasuratirar += garbageCombo;
+                } //Combo Simple
                 else if (combo == 1)
                 {
-                    _garbageQuantityThrow += 1;
-                    Debug.Log("combo: " + combo + " - " + "garbage: " + _garbageQuantityThrow);
+                    cantidadbasuratirar += garbageSimple;
                 }
+
+                //Recuperamos basura
+                if (cantidadbasuratirar >= _garbageQuantityReceive)
+                {
+                    cantidadbasuratirar = cantidadbasuratirar - _garbageQuantityReceive;
+                    _garbageQuantityReceive = 0;
+                }
+                else
+                {
+                    _garbageQuantityReceive = _garbageQuantityReceive - cantidadbasuratirar;
+                    cantidadbasuratirar = 0;
+                }
+
+                _garbageQuantityThrow += cantidadbasuratirar;
+
+                //Indicadores
+                _rival._garbageIndicator.text = (_rival._garbageQuantityReceive + _garbageQuantityThrow + _rival._garbageDoubleHealthQuantityReceive).ToString();
+                _garbageIndicator.text = (_garbageQuantityReceive + _garbageDoubleHealthQuantityReceive + _rival._garbageQuantityThrow).ToString();
 
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
@@ -622,7 +639,7 @@ public class PieceController : NetworkBehaviour
 
             if (combo > 0)
             {
-                if(!_isOnline)GetComponent<AbilityController>().enemyPieceController.ThrowGarbage(_garbageQuantityThrow, 0);
+                if(!_isOnline)_rival.ThrowGarbage(_garbageQuantityThrow, 0);
                 else EnemyThrowGarbageServerRpc(_garbageQuantityThrow, 0);
                 _garbageQuantityThrow = 0;
                 combo = 0;
@@ -714,6 +731,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosR").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
+               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
            else
            {
@@ -721,6 +739,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosL").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
+               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
        }
        else
@@ -731,6 +750,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosL").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
+               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
            else
            {
@@ -738,6 +758,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosR").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
+               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
        }
    }
@@ -830,7 +851,9 @@ public class PieceController : NetworkBehaviour
        /// </summary>
        private IEnumerator ReceiveGarbage()
        {
-          // yield return new WaitForSeconds(0.25f);
+           //return new WaitForSeconds(0.25f);
+           _garbageIndicator.text = "0";
+
            int posY = 0;
            int posX = 0;
 
@@ -899,6 +922,7 @@ public class PieceController : NetworkBehaviour
                return true;
 
            });
+
 
            //CONTINUE
            _garbageDoubleHealthQuantityReceive = 0;

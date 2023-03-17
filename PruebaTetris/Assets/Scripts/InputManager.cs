@@ -212,7 +212,7 @@ public class InputManager : NetworkBehaviour
             _lastMove = Time.time;
             _pieceController.currentBlock.Move(_moveDirection);
         }
-   
+
         if (_rotation != 0 && Time.time - _lastRotation >= rotationCooldown)
         {
             _lastRotation = Time.time;
