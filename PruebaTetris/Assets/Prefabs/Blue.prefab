@@ -247,7 +247,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   m_Color: {r: 0, g: 0.05658412, b: 1, a: 1}
   m_FlipX: 0
@@ -274,7 +274,6 @@ MonoBehaviour:
   check: 0
   fallen: 0
   justFallen: 0
-  unionPrefabs: []
 --- !u!114 &2942247738093875920
 MonoBehaviour:
   m_ObjectHideFlags: 0

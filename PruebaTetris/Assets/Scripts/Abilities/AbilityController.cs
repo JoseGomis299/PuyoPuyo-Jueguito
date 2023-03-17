@@ -9,7 +9,7 @@ public class AbilityController : MonoBehaviour
     private ICharacterAbility myAbility;
     public PieceController enemyPieceController { get; private set; }
 
-    private void Start()
+    private void Awake()
     {
        var grids = GameObject.FindGameObjectsWithTag("grid");
        foreach (var grid in grids)

@@ -33,11 +33,8 @@ public class PieceController : NetworkBehaviour
     [SerializeField] private int garbageCombo = 6;
     [SerializeField] private int garbageSimple = 1;
 
-    [Header("My Data")]
-    [SerializeField] private TMP_Text garbageIndicator;
-
-    [Header("Rival Data")]
-    [SerializeField] private PieceController rival;
+    private TMP_Text _garbageIndicator;
+    private PieceController _rival;
    
    //************REFERENCES**************
    
@@ -99,6 +96,7 @@ public class PieceController : NetworkBehaviour
        // INITIALISE ALL VARIABLES 
        _isOnline = NetworkManager != null;
 
+       _rival = GetComponent<AbilityController>().enemyPieceController;
        _currentGarbage = new LinkedList<Piece>();
         _neighbours = new LinkedList<Piece>();
         _pieces = new LinkedList<Piece>();
@@ -547,8 +545,8 @@ public class PieceController : NetworkBehaviour
                 _garbageQuantityThrow += cantidadbasuratirar;
 
                 //Indicadores
-                rival.garbageIndicator.text = (rival._garbageQuantityReceive + _garbageQuantityThrow).ToString();
-                garbageIndicator.text = (_garbageQuantityReceive + rival._garbageQuantityThrow).ToString();
+                _rival._garbageIndicator.text = (_rival._garbageQuantityReceive + _garbageQuantityThrow).ToString();
+                _garbageIndicator.text = (_garbageQuantityReceive + _rival._garbageQuantityThrow).ToString();
 
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
@@ -635,7 +633,7 @@ public class PieceController : NetworkBehaviour
             
             if (combo > 0)
             {
-                if(!_isOnline)GetComponent<AbilityController>().enemyPieceController.ThrowGarbage(_garbageQuantityThrow);
+                if(!_isOnline)_rival.ThrowGarbage(_garbageQuantityThrow);
                 else EnemyThrowGarbageServerRpc(_garbageQuantityThrow);
                 _garbageQuantityThrow = 0;
                 combo = 0;
@@ -727,6 +725,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosR").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
+               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
            else
            {
@@ -734,6 +733,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosL").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
+               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
        }
        else
@@ -744,6 +744,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosL").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
+               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
            else
            {
@@ -751,6 +752,7 @@ public class PieceController : NetworkBehaviour
                _holdTransform = GameObject.Find("HoldPosR").transform;
                _nextTransforms = new[]
                    { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
+               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
        }
    }
@@ -811,7 +813,7 @@ public class PieceController : NetworkBehaviour
        private IEnumerator ReceiveGarbage()
        {
            yield return new WaitForSeconds(0.25f);
-        garbageIndicator.text = "0";
+        _garbageIndicator.text = "0";
 
         int posY = 0;
            int posX = 0;
