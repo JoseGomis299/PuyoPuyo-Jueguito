@@ -21,7 +21,7 @@ public class PieceController : NetworkBehaviour
     
    [Header("Grid stats")]
    [SerializeField] private Piece[] availablePieces; 
-   [SerializeField] private Piece[] garbagePieces; 
+   [SerializeField] private Garbage[] garbagePieces; 
    public float fallSpeed = 5;
    [HideInInspector] public float fallSpeedDelta = 1;
 
@@ -75,6 +75,7 @@ public class PieceController : NetworkBehaviour
    private bool _doNotGenerate;
 
    private bool _isOnline;
+   private bool _usingAbility;
 
    //************SCORE PARAMETERS**************
    
@@ -84,6 +85,7 @@ public class PieceController : NetworkBehaviour
    
    private int _garbageQuantityThrow;
    private int _garbageQuantityReceive;
+   private int _garbageDoubleHealthQuantityReceive;
    private bool _receivingGarbage;
 
    #endregion
@@ -290,7 +292,7 @@ public class PieceController : NetworkBehaviour
                     TargetClientIds = new ulong[]{id}
                 }
             };
-            ThrowGarbageClientRpc(clientRpcParams);
+            ReceiveGarbageClientRpc(clientRpcParams);
         }
     }
    
@@ -461,7 +463,7 @@ public class PieceController : NetworkBehaviour
    private IEnumerator _SetPiecesValue()
     {
         //IF currentBlock != null MAKES THE CURRENT BLOCK PIECES FALL BEFORE MAKING THEM EXPLODE
-        if (currentBlock != null)
+        if (currentBlock != null && !_usingAbility)
         {
             foreach (var piece in currentBlock.GetPieces())
             {
@@ -545,8 +547,8 @@ public class PieceController : NetworkBehaviour
                 _garbageQuantityThrow += cantidadbasuratirar;
 
                 //Indicadores
-                _rival._garbageIndicator.text = (_rival._garbageQuantityReceive + _garbageQuantityThrow).ToString();
-                _garbageIndicator.text = (_garbageQuantityReceive + _rival._garbageQuantityThrow).ToString();
+                _rival._garbageIndicator.text = (_rival._garbageQuantityReceive + _garbageQuantityThrow + _rival._garbageDoubleHealthQuantityReceive).ToString();
+                _garbageIndicator.text = (_garbageQuantityReceive + _garbageDoubleHealthQuantityReceive + _rival._garbageQuantityThrow).ToString();
 
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
@@ -628,13 +630,17 @@ public class PieceController : NetworkBehaviour
         //ELSE GENERATE A NEW BLOCK AND THROW GARBAGE IF COMBO > 0
         else
         {
-            if(!_isOnline)GenerateBlock();
-            else OnlineBlockGeneration();
-            
+            if (!_usingAbility)
+            {
+                if (!_isOnline) GenerateBlock();
+                else OnlineBlockGeneration();
+            }
+            else _usingAbility = false;
+
             if (combo > 0)
             {
-                if(!_isOnline)_rival.ThrowGarbage(_garbageQuantityThrow);
-                else EnemyThrowGarbageServerRpc(_garbageQuantityThrow);
+                if(!_isOnline)_rival.ThrowGarbage(_garbageQuantityThrow, 0);
+                else EnemyThrowGarbageServerRpc(_garbageQuantityThrow, 0);
                 _garbageQuantityThrow = 0;
                 combo = 0;
             }
@@ -757,6 +763,36 @@ public class PieceController : NetworkBehaviour
        }
    }
 
+   /// <summary>
+   /// <para>Removes all the <see cref="Garbage"/> of the grid and returns the number of removed <see cref="Garbage"/></para>
+   /// </summary>
+   public int RemoveGarbage()
+   {
+       int count = 0;
+       for (int x = 0; x < _grid.GetWidth(); x++)
+       {
+           for (int y = 0; y < _grid.GetHeight(); y++)
+           {
+               var piece = _grid.GetValue(x, y);
+               if (piece != null && !piece.exploded && piece is Garbage)
+               {
+                   piece.Explode(_grid);
+                   count++;
+               }
+           }
+       }
+
+       if (count == 0) return 0;
+       
+       //WAIT UNTIL GARBAGE PIECES HAS DISAPPEARED
+       Timer.Instance.WaitForAction(() =>
+       {
+           _usingAbility = true;
+           SetPiecesValue();
+       }, 0.25f);
+       return count;
+   }
+
    #endregion
    //******************END GRID UTILITIES REGION********************
 
@@ -769,7 +805,7 @@ public class PieceController : NetworkBehaviour
        /// <para>Stops all coroutines and calls <c>ReceiveGarbage</c> on the client that has invoked the previous ServerRpc method</para>
        /// </summary>
        [ClientRpc]
-       private void ThrowGarbageClientRpc(ClientRpcParams clientRpcParams)
+       private void ReceiveGarbageClientRpc(ClientRpcParams clientRpcParams)
        {
            StopAllCoroutines();
            StartCoroutine(ReceiveGarbage());
@@ -778,33 +814,36 @@ public class PieceController : NetworkBehaviour
        /// <summary>
        /// <para>Sets <c>_garbageQuantityReceive</c> to the number of <see cref="Garbage"/> that the enemy has thrown to you and tells the generator to generate it</para>
        /// <param name="garbageNum">The number of garbage that is going to be generated</param>
+       /// <param name="doubleHealthGarbageNum">The number of garbage that is going to be generated with 2 health points</param>
        /// </summary>
-       private void ThrowGarbage(int garbageNum)
+       public void ThrowGarbage(int garbageNum, int doubleHealthGarbageNum)
        {
-           _garbageQuantityReceive = garbageNum;
+           _garbageQuantityReceive += garbageNum;
+           _garbageDoubleHealthQuantityReceive += doubleHealthGarbageNum;
            _receivingGarbage = true;
        }
 
        /// <summary>
        /// <para>Gets the <c>enemyPieceController</c> reference and tells the client to throw garbage to him</para>
        /// <param name="garbageNum">The number of garbage that is going to be generated</param>
+       /// <param name="doubleHealthGarbageNum">The number of garbage that is going to be generated with 2 health points</param>
        /// </summary>
        [ServerRpc]
-       private void EnemyThrowGarbageServerRpc(int garbageNum, ServerRpcParams serverRpcParams = default)
+       public void EnemyThrowGarbageServerRpc(int garbageNum, int doubleHealthGarbageNum, ServerRpcParams serverRpcParams = default)
        {
            var id = serverRpcParams.Receive.SenderClientId;
            var enemy = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<AbilityController>()
                .enemyPieceController;
 
            var enemyRef = new NetworkObjectReference(enemy.GetComponent<NetworkObject>());
-           EnemyThrowGarbageClientRpc(garbageNum, enemyRef);
+           EnemyThrowGarbageClientRpc(garbageNum, doubleHealthGarbageNum,enemyRef);
        }
 
        [ClientRpc]
-       private void EnemyThrowGarbageClientRpc(int garbageCount, NetworkObjectReference reference)
+       private void EnemyThrowGarbageClientRpc(int garbageCount, int doubleHealthGarbageNum, NetworkObjectReference reference)
        {
            reference.TryGet(out var e);
-           e.GetComponent<PieceController>().ThrowGarbage(garbageCount);
+           e.GetComponent<PieceController>().ThrowGarbage(garbageCount, doubleHealthGarbageNum);
        }
 
        /// <summary>
@@ -812,10 +851,10 @@ public class PieceController : NetworkBehaviour
        /// </summary>
        private IEnumerator ReceiveGarbage()
        {
-           yield return new WaitForSeconds(0.25f);
-        _garbageIndicator.text = "0";
+           //return new WaitForSeconds(0.25f);
+           _garbageIndicator.text = "0";
 
-        int posY = 0;
+           int posY = 0;
            int posX = 0;
 
            //GENERATES THE NEEDED GARBAGE AND ADDS THEM TO _currentGarbage
@@ -829,17 +868,37 @@ public class PieceController : NetworkBehaviour
 
                if (!_isOnline)
                {
-                   Piece g = Instantiate(garbagePieces[0]);
+                   Garbage g = Instantiate(garbagePieces[0]);
                    g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
                    _currentGarbage.AddLast(g);
                }
-               else GenerateGarbageServerRpc(posX, posY);
+               else GenerateGarbageServerRpc(posX, posY, 1);
+               
+               posX++;
+           }
+           //SAME FOR THE GARBAGE WITH 2 POINTS OF HEALTH
+           for (int i = 0; i < _garbageDoubleHealthQuantityReceive; i++)
+           {
+               if (posX >= 6)
+               {
+                   posX = 0;
+                   posY++;
+               }
+
+               if (!_isOnline)
+               {
+                   Garbage g = Instantiate(garbagePieces[0]);
+                   g.SetHealth(2);
+                   g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+                   _currentGarbage.AddLast(g);
+               }
+               else GenerateGarbageServerRpc(posX, posY, 2);
 
                posX++;
            }
 
            //SINCE IT IS A COROUTINE AND ONLINE IS NOT INSTANT, WE HAVE TO WAIT FOR EVERY PIECE TO BE GENERATED
-           if (_isOnline) yield return new WaitUntil(() => _currentGarbage.Count == _garbageQuantityReceive);
+           if (_isOnline) yield return new WaitUntil(() => _currentGarbage.Count == _garbageQuantityReceive+_garbageDoubleHealthQuantityReceive);
 
            //MAKE EVERY PIECE FALL
            foreach (Piece garbage in _currentGarbage)
@@ -863,11 +922,12 @@ public class PieceController : NetworkBehaviour
                return true;
 
            });
-           yield return new WaitForSeconds(0.25f);
 
-        //CONTINUE
-        _garbageQuantityReceive = 0;
-        _currentGarbage.Clear();
+
+           //CONTINUE
+           _garbageDoubleHealthQuantityReceive = 0;
+           _garbageQuantityReceive = 0;
+           _currentGarbage.Clear();
            _receivingGarbage = false;
            if (!_isOnline) GenerateBlock();
            else OnlineBlockGeneration();
@@ -877,9 +937,10 @@ public class PieceController : NetworkBehaviour
        /// <para>Generates a piece of <see cref="Garbage"/> on the client that has invoked this method</para>
        /// <param name="x">The X position where it is going to be generated</param>
        /// <param name="y">The Y position where it is going to be generated</param>
+       /// <param name="health">The number of times that the Garbage has to be hit to explode</param>
        /// </summary>
        [ServerRpc(RequireOwnership = false)]
-       private void GenerateGarbageServerRpc(int x, int y, ServerRpcParams serverRpcParams = default)
+       private void GenerateGarbageServerRpc(int x, int y, int health, ServerRpcParams serverRpcParams = default)
        {
            var id = serverRpcParams.Receive.SenderClientId;
            ClientRpcParams clientRpcParams = new ClientRpcParams
@@ -894,7 +955,7 @@ public class PieceController : NetworkBehaviour
            g.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
 
            NetworkObjectReference garbageReference = new NetworkObjectReference(g.GetComponent<NetworkObject>());
-           SetGarbageClientRpc(garbageReference, x, y, clientRpcParams);
+           SetGarbageClientRpc(garbageReference, x, y, health, clientRpcParams);
        }
 
        /// <summary>
@@ -902,14 +963,15 @@ public class PieceController : NetworkBehaviour
        /// <param name="garbageRef">The reference of the Garbage that has been generated</param>
        /// <param name="posX">The X position where it is going to be placed</param>
        /// <param name="posY">The Y position where it is going to be placed</param>
+       /// <param name="health">The number of times that the Garbage has to be hit to explode</param>
        /// </summary>
        [ClientRpc]
-       private void SetGarbageClientRpc(NetworkObjectReference garbageRef, int posX, int posY,
-           ClientRpcParams clientRpcParams)
+       private void SetGarbageClientRpc(NetworkObjectReference garbageRef, int posX, int posY, int health, ClientRpcParams clientRpcParams)
        {
            garbageRef.TryGet(out var garbage);
-           var g = garbage.GetComponent<Piece>();
+           var g = garbage.GetComponent<Garbage>();
 
+           g.SetHealth(health);
            g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
            _currentGarbage.AddLast(g);
        }

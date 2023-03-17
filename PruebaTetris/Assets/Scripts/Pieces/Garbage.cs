@@ -6,7 +6,7 @@ using UnityEngine;
 ///
 public class Garbage : Piece
 {
-    private int health = 1;
+    private int health;
     public override void Explode(Grid<Piece> grid)
     {
         if(--health > 0) return;
