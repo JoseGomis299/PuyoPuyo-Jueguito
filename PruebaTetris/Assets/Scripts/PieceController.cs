@@ -34,9 +34,7 @@ public class PieceController : NetworkBehaviour
     [SerializeField] private int garbageSimple = 1;
 
     private TMP_Text _garbageIndicator;
-    private PieceController _rival;
-   
-   //************REFERENCES**************
+    //************REFERENCES**************
    
    private InputManager _inputManager;
    
@@ -86,6 +84,9 @@ public class PieceController : NetworkBehaviour
    private int _garbageQuantityThrow;
    private int _garbageQuantityReceive;
    private int _garbageDoubleHealthQuantityReceive;
+
+   private NetworkVariable<int> _networkGarbageReceiveText = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner);
+   
    private bool _receivingGarbage;
 
    #endregion
@@ -97,8 +98,6 @@ public class PieceController : NetworkBehaviour
    {
        // INITIALISE ALL VARIABLES 
        _isOnline = NetworkManager != null;
-
-       _rival = GetComponent<AbilityController>().enemyPieceController;
        _currentGarbage = new LinkedList<Piece>();
         _neighbours = new LinkedList<Piece>();
         _pieces = new LinkedList<Piece>();
@@ -110,9 +109,17 @@ public class PieceController : NetworkBehaviour
        // SET POSITION ON THE SCREEN + CREATE GRID
        InitialPosition();
        _grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
-       
+
+       if (_isOnline)
+       {
+           _networkGarbageReceiveText.OnValueChanged = (value, newValue) =>
+           {
+               _garbageIndicator.text = newValue.ToString();
+           };
+       }
+           
        if (_isOnline && !IsOwner) { return; }
-       
+
        // GENERATE FIRST BLOCK
        if(!_isOnline)GenerateBlock();
        else GenerateBlockServerRpc(_receivingGarbage);
@@ -535,21 +542,21 @@ public class PieceController : NetworkBehaviour
                 //Recuperamos basura
                 if (cantidadbasuratirar >= _garbageQuantityReceive)
                 {
-                    cantidadbasuratirar = cantidadbasuratirar - _garbageQuantityReceive;
+                    cantidadbasuratirar -= _garbageQuantityReceive;
                     _garbageQuantityReceive = 0;
                 }
                 else
                 {
-                    _garbageQuantityReceive = _garbageQuantityReceive - cantidadbasuratirar;
+                    _garbageQuantityReceive -= cantidadbasuratirar;
                     cantidadbasuratirar = 0;
                 }
 
+                //Actualizamos texto
+                _garbageIndicator.text = (_garbageQuantityReceive + _garbageDoubleHealthQuantityReceive).ToString();
+                if (_isOnline && IsOwner) _networkGarbageReceiveText.Value = _garbageQuantityReceive + _garbageDoubleHealthQuantityReceive;
+
                 _garbageQuantityThrow += cantidadbasuratirar;
-
-                //Indicadores
-                _rival._garbageIndicator.text = (_rival._garbageQuantityReceive + _garbageQuantityThrow + _rival._garbageDoubleHealthQuantityReceive).ToString();
-                _garbageIndicator.text = (_garbageQuantityReceive + _garbageDoubleHealthQuantityReceive + _rival._garbageQuantityThrow).ToString();
-
+                
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
@@ -639,7 +646,7 @@ public class PieceController : NetworkBehaviour
 
             if (combo > 0)
             {
-                if(!_isOnline)_rival.ThrowGarbage(_garbageQuantityThrow, 0);
+                if(!_isOnline)GetComponent<AbilityController>().enemyPieceController.ThrowGarbage(_garbageQuantityThrow, 0);
                 else EnemyThrowGarbageServerRpc(_garbageQuantityThrow, 0);
                 _garbageQuantityThrow = 0;
                 combo = 0;
@@ -820,6 +827,10 @@ public class PieceController : NetworkBehaviour
        {
            _garbageQuantityReceive += garbageNum;
            _garbageDoubleHealthQuantityReceive += doubleHealthGarbageNum;
+           
+           _garbageIndicator.text = (_garbageQuantityReceive + _garbageDoubleHealthQuantityReceive).ToString();
+           if (_isOnline && IsOwner) _networkGarbageReceiveText.Value = _garbageQuantityReceive + _garbageDoubleHealthQuantityReceive;
+
            _receivingGarbage = true;
        }
 
@@ -831,9 +842,14 @@ public class PieceController : NetworkBehaviour
        [ServerRpc]
        public void EnemyThrowGarbageServerRpc(int garbageNum, int doubleHealthGarbageNum, ServerRpcParams serverRpcParams = default)
        {
+           
+           var enemy = GetComponent<AbilityController>().enemyPieceController;
            var id = serverRpcParams.Receive.SenderClientId;
-           var enemy = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<AbilityController>()
-               .enemyPieceController;
+
+           if (!NetworkManager.ConnectedClients[id].PlayerObject.IsOwnedByServer)
+           {
+               enemy = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<AbilityController>().enemyPieceController;
+           }
 
            var enemyRef = new NetworkObjectReference(enemy.GetComponent<NetworkObject>());
            EnemyThrowGarbageClientRpc(garbageNum, doubleHealthGarbageNum,enemyRef);
@@ -850,9 +866,10 @@ public class PieceController : NetworkBehaviour
        /// <para>Generates the number of <see cref="Garbage"/> set on <c>_garbageQuantityReceive</c></para>
        /// </summary>
        private IEnumerator ReceiveGarbage()
-       {
+       {    
            //return new WaitForSeconds(0.25f);
            _garbageIndicator.text = "0";
+           if(_isOnline && IsOwner) _networkGarbageReceiveText.Value = 0;
 
            int posY = 0;
            int posX = 0;

@@ -4,19 +4,21 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class AbilityController : MonoBehaviour
+public class AbilityController : NetworkBehaviour
 {
     private ICharacterAbility myAbility;
     public PieceController enemyPieceController { get; private set; }
 
-    private void Awake()
+    private void Start()
     {
-       var grids = GameObject.FindGameObjectsWithTag("grid");
-       foreach (var grid in grids)
-       {
-           if(grid.Equals(gameObject)) continue;
-           enemyPieceController = grid.GetComponent<PieceController>();
-       }
+        {
+            var grids = GameObject.FindGameObjectsWithTag("grid");
+            foreach (var grid in grids)
+            {
+                if (grid.Equals(gameObject)) continue;
+                enemyPieceController = grid.GetComponent<PieceController>();
+            }
+        }
     }
 
     public void SetAbility(int characterAbilityAbilityId)
@@ -36,6 +38,8 @@ public class AbilityController : MonoBehaviour
 
     public void UseAbility()
     {
+        if(NetworkManager.Singleton != null && !IsOwner) return;
+        
         myAbility.UseAbility(GetComponent<PieceController>(), enemyPieceController);
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 public class AbilitiesNetwork : NetworkBehaviour
 {
     public static AbilitiesNetwork Instance { get; private set; }
-    public bool usingAbility;
+    private bool usingAbility;
 
     private void Awake()
     {
