@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
+using TMPro;
 
 /// <summary>Class <c>PieceController</c> the controller for a Player's Grid</summary>
 ///
@@ -27,6 +28,16 @@ public class PieceController : NetworkBehaviour
    [Header("Grid dimensions and position")]
    [SerializeField] private Vector2 gridSize = new Vector2(6, 14);
    [SerializeField] private float cellSize = 1;
+
+    [Header("Garbage Data")]
+    [SerializeField] private int garbageCombo = 6;
+    [SerializeField] private int garbageSimple = 1;
+
+    [Header("My Data")]
+    [SerializeField] private TMP_Text garbageIndicator;
+
+    [Header("Rival Data")]
+    [SerializeField] private PieceController rival;
    
    //************REFERENCES**************
    
@@ -497,39 +508,47 @@ public class PieceController : NetworkBehaviour
             if (_neighbours.Count >= 4)
             {
                 //Combos and garbage
+
+                //Si se hace mas de una linea, deja de ser combo simple
                 if (combo == 1)
                 {
-                    _garbageQuantityThrow -= 1;
+                    _garbageQuantityThrow -= garbageSimple;
                 }
 
                 combo++;
 
-                _garbageQuantityThrow += _neighbours.Count - 4;
+                int cantidadbasuratirar = 0;
 
+                //Por cada pieza "extra" tiramos uno mas de basura
+                cantidadbasuratirar += _neighbours.Count - 4;
+
+                //Combo normal
                 if (combo > 1)
                 {
-                    //int cantidadbasuratirar = 6 - cantidadbasura;
-                    //int cantidadbasurarecuperar = 6 - cantidadbasuratirar;
-
-
-                    /*if (cantidadbasurarecuperar < 0)
-                    {
-                        cantidadbasurarecuperar = 0;
-                    }*/
-
-                    /*if (cantidadbasura < 0)
-                    {
-                        cantidadbasura = 0;
-                    }*/
-                    _garbageQuantityThrow += 6;
-                    //rival.cantidadbasura += cantidadbasuratirar;
-                    Debug.Log("combo: " + combo + " - " + "garbage: " + _garbageQuantityThrow);
-                }
+                    cantidadbasuratirar += garbageCombo;
+                } //Combo Simple
                 else if (combo == 1)
                 {
-                    _garbageQuantityThrow += 1;
-                    Debug.Log("combo: " + combo + " - " + "garbage: " + _garbageQuantityThrow);
+                    cantidadbasuratirar += garbageSimple;
                 }
+
+                //Recuperamos basura
+                if (cantidadbasuratirar >= _garbageQuantityReceive)
+                {
+                    cantidadbasuratirar = cantidadbasuratirar - _garbageQuantityReceive;
+                    _garbageQuantityReceive = 0;
+                }
+                else
+                {
+                    _garbageQuantityReceive = _garbageQuantityReceive - cantidadbasuratirar;
+                    cantidadbasuratirar = 0;
+                }
+
+                _garbageQuantityThrow += cantidadbasuratirar;
+
+                //Indicadores
+                rival.garbageIndicator.text = (rival._garbageQuantityReceive + _garbageQuantityThrow).ToString();
+                garbageIndicator.text = (_garbageQuantityReceive + rival._garbageQuantityThrow).ToString();
 
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
@@ -792,7 +811,9 @@ public class PieceController : NetworkBehaviour
        private IEnumerator ReceiveGarbage()
        {
            yield return new WaitForSeconds(0.25f);
-           int posY = 0;
+        garbageIndicator.text = "0";
+
+        int posY = 0;
            int posX = 0;
 
            //GENERATES THE NEEDED GARBAGE AND ADDS THEM TO _currentGarbage
@@ -842,8 +863,9 @@ public class PieceController : NetworkBehaviour
            });
            yield return new WaitForSeconds(0.25f);
 
-           //CONTINUE
-           _currentGarbage.Clear();
+        //CONTINUE
+        _garbageQuantityReceive = 0;
+        _currentGarbage.Clear();
            _receivingGarbage = false;
            if (!_isOnline) GenerateBlock();
            else OnlineBlockGeneration();
