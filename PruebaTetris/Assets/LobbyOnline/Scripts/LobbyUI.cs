@@ -89,7 +89,7 @@ public class LobbyUI : MonoBehaviour {
                 player.Id != AuthenticationService.Instance.PlayerId // Don't allow kick self
             );
 
-            SetPlayButton(LobbyManager.Instance.IsLobbyHost() && lobby.Players.Count >= 2 && LobbyManager.Instance.GetJoinedLobby().Data[LobbyManager.KEY_START_GAME].Value == "0");
+            SetPlayButton(LobbyManager.Instance.IsLobbyHost() && lobby.Players.Count >= 2 && !LobbyManager.Instance.gameStarted);
 
             lobbyPlayerSingleUI.UpdatePlayer(player);
         }

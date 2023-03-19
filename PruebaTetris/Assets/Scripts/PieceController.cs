@@ -119,7 +119,7 @@ public class PieceController : NetworkBehaviour
        
        // SET POSITION ON THE SCREEN + CREATE GRID
        InitialPosition();
-       grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
+       grid ??= new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
 
        if (_isOnline)
        {
@@ -131,9 +131,7 @@ public class PieceController : NetworkBehaviour
        // GENERATE FIRST BLOCK
        if(!_isOnline)GenerateBlock();
        else GenerateBlockServerRpc(_receivingGarbage);
-
    }
-   
    private void Update()
    {
        if (_isOnline && !IsOwner) { return; }
@@ -226,70 +224,66 @@ public class PieceController : NetworkBehaviour
     private void GenerateBlockServerRpc(bool receivingGarbage, ServerRpcParams serverRpcParams = default)
     {
         var id = serverRpcParams.Receive.SenderClientId;
+        PieceController pieceController = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<PieceController>();
+
+        Block current;
+        Block[] next = new Block[2];
 
         if (!receivingGarbage)
         {
             //IF _nextBlocks[0] == null GENERATES EVERY BLOCK SINCE THERE IS NOT IN THE GRID YET
-            if (_nextBlocks[0] == null)
+            if (pieceController._nextBlocks[0] == null)
             {
-                currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                current = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
                     Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
 
-                for (int i = 0; i < _nextBlocks.Length; i++)
+                for (int i = 0; i < next.Length; i++)
                 {
-                    _nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                    next[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
                         Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this.grid, this);
 
-                    for (int j = 0; j < _nextBlocks[i].GetPieces().Length; j++)
-                        _nextBlocks[i].GetPieces()[j].transform.GetComponent<NetworkObject>()
+                    for (int j = 0; j < next[i].GetPieces().Length; j++)
+                        next[i].GetPieces()[j].transform.GetComponent<NetworkObject>()
                             .SpawnWithOwnership(id, true);
                 }
 
-                for (int i = 0; i < currentBlock.GetPieces().Length; i++)
-                    currentBlock.GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
+                for (int i = 0; i < current.GetPieces().Length; i++)
+                    current.GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
             }
             
             //IF _nextBlocks[0] != null JUST GENERATES THE NEW _nextBlocks[^1] AND CHANGES THE REFERENCE
             //FOR THE OTHER BLOCKS SINCE THEY ARE ALREADY GENERATED
             else
             {
-                currentBlock = _nextBlocks[0];
+                current = pieceController._nextBlocks[0];
 
-                for (int i = 0; i < _nextBlocks.Length - 1; i++)
+                for (int i = 0; i < next.Length - 1; i++)
                 {
-                    _nextBlocks[i] = _nextBlocks[i + 1];
+                    next[i] = pieceController._nextBlocks[i + 1];
                 }
 
-                _nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
+                next[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
                     Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
 
-                for (int i = 0; i < _nextBlocks[^1].GetPieces().Length; i++)
-                    _nextBlocks[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
-            }
-
-
-            //SETS EVERY BLOCK TO ITS CORRESPONDENT POSITION IN THE SERVER
-            currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
-            for (int i = 0; i < _nextBlocks.Length; i++)
-            {
-                _nextBlocks[i].SetPosition(_nextTransforms[i].position, i == 0 ? 0.75f : 0.75f * 0.5f * i);
+                for (int i = 0; i < next[^1].GetPieces().Length; i++)
+                    next[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
             }
 
             //SETS EVERY BLOCK NetworkObjectReference FOR CHANGING ITS REFERENCE IN THE CLIENTS
             NetworkObjectReference[] currentPieces =
             {
-                new(currentBlock.GetPieces()[0].GetComponent<NetworkObject>()),
-                new(currentBlock.GetPieces()[1].GetComponent<NetworkObject>())
+                new(current.GetPieces()[0].GetComponent<NetworkObject>()),
+                new(current.GetPieces()[1].GetComponent<NetworkObject>())
             };
             NetworkObjectReference[] nextPieces1 =
             {
-                new(_nextBlocks[0].GetPieces()[0].GetComponent<NetworkObject>()),
-                new(_nextBlocks[0].GetPieces()[1].GetComponent<NetworkObject>())
+                new(next[0].GetPieces()[0].GetComponent<NetworkObject>()),
+                new(next[0].GetPieces()[1].GetComponent<NetworkObject>())
             };
             NetworkObjectReference[] nextPieces2 =
             {
-                new(_nextBlocks[1].GetPieces()[0].GetComponent<NetworkObject>()),
-                new(_nextBlocks[1].GetPieces()[1].GetComponent<NetworkObject>())
+                new(next[1].GetPieces()[0].GetComponent<NetworkObject>()),
+                new(next[1].GetPieces()[1].GetComponent<NetworkObject>())
             };
 
             //SETS EVERY BLOCK REFERENCE AND POSITION IN THE CLIENTS IN THE CLIENTS
@@ -319,12 +313,13 @@ public class PieceController : NetworkBehaviour
    /// </summary>
    ///
     [ClientRpc]
-    private  void SendClientsBlocksClientRpc(NetworkObjectReference[] currentPieces, NetworkObjectReference[] nextPieces1, NetworkObjectReference[] nextPieces2)
+    private void SendClientsBlocksClientRpc(NetworkObjectReference[] currentPieces, NetworkObjectReference[] nextPieces1, NetworkObjectReference[] nextPieces2)
     {
-        if (!IsOwnedByServer)
+        currentPieces[0].TryGet(out var piece0);
+        currentPieces[1].TryGet(out var piece1);
+        
+        if (piece0.IsOwner)
         {
-            currentPieces[0].TryGet(out var piece0);
-            currentPieces[1].TryGet(out var piece1);
             currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
             nextPieces1[0].TryGet(out  piece0);
             nextPieces1[1].TryGet(out  piece1);
@@ -333,11 +328,32 @@ public class PieceController : NetworkBehaviour
             nextPieces2[1].TryGet(out  piece1);
             _nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
             currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
+            
             for (int i = 0; i < _nextBlocks.Length; i++)
             {
                 _nextBlocks[i].SetPosition(_nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
             }
+        }
 
+        else
+        {
+            if (grid == null)
+            {
+                _isOnline = NetworkManager != null;
+                InitialPosition();
+                grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
+            }
+            
+            Block block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
+            block.SetPositionInGrid(60, 50);
+            nextPieces1[0].TryGet(out  piece0);
+            nextPieces1[1].TryGet(out  piece1);
+            block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
+            block.SetPosition(_nextTransforms[0].position, 0.75f);
+            nextPieces2[0].TryGet(out  piece0);
+            nextPieces2[1].TryGet(out  piece1);
+            block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
+            block.SetPosition(_nextTransforms[1].position, 0.75f*0.5f);
         }
     }
     
@@ -376,8 +392,33 @@ public class PieceController : NetworkBehaviour
        
        //PLACES THE BLOCK IN _holdTransform.position
        _holdBlock.SetPosition(_holdTransform.position, 0.75f);
+       if(_isOnline) SetHoldBlockServerRpc(new NetworkObjectReference[]{_holdBlock.GetPieces()[0].NetworkObject, _holdBlock.GetPieces()[1].NetworkObject});
        
        held = true;
+   }
+
+   [ServerRpc]
+   private void SetHoldBlockServerRpc(NetworkObjectReference[] holdenPieces)
+   {
+       SetHoldBlockClientRpc(holdenPieces);
+   }
+   [ClientRpc]
+   private void SetHoldBlockClientRpc(NetworkObjectReference[] holdenPieces)
+   {
+       holdenPieces[0].TryGet(out var piece0);
+       holdenPieces[1].TryGet(out var piece1);
+
+       if ((!piece0.IsOwner && !IsOwner) || (IsOwner && piece0.IsOwner))
+       {
+           piece0.GetComponent<Piece>().SetDontMove(true);
+           piece1.GetComponent<Piece>().SetDontMove(true);
+           Timer.Instance.WaitForAction(() =>
+           {
+               Block block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
+               block.SetPosition(_holdTransform.position, 0.75f);
+           },0.1f);
+           
+       }
    }
 
    /// <summary>
@@ -740,18 +781,18 @@ public class PieceController : NetworkBehaviour
    /// </summary>
    private void InitialPosition()
    {
-       GameObject background = null;
+       GameObject background;
 
        if (!_isOnline)
        {
            if (_inputManager.playerTwo)
            {
-               background = GameObject.Find("BackgroundRight");
+               background = GameObject.Find("BackgroundRight/Canvas");
                transform.position = Vector3.right * 3;
            }
            else
            {
-               background = GameObject.Find("BackgroundLeft");
+               background = GameObject.Find("BackgroundLeft/Canvas");
                transform.position = Vector3.right * -9;
            }
        }
@@ -759,21 +800,21 @@ public class PieceController : NetworkBehaviour
        {
            if (IsOwner)
            {
-               background = GameObject.Find("BackgroundLeft");
+               background = GameObject.Find("BackgroundLeft/Canvas");
                transform.position = Vector3.right * -9;
            }
            else
            {
-               background = GameObject.Find("BackgroundRight");
+               background = GameObject.Find("BackgroundRight/Canvas");
                transform.position = Vector3.right * 3;
            }
        }
        
-       _holdTransform = background.transform.Find("Canvas/Hold/HoldPos").transform;
-       _nextTransforms = new[] { background.transform.Find("Canvas/Next/Background/NextPos").transform,  background.transform.Find("Canvas/Next/Background2/NextPos2").transform };
-       _garbageIndicator =  background.transform.Find("Canvas/GarbageIndicator/Garbage").GetComponent<TMP_Text>();
-       GetComponent<PlayerUI>().SetReferences(background.transform.Find("Canvas/HealthBar").GetComponent<Slider>(), background.transform.Find("Canvas/AbilityBar").GetComponent<Slider>(),
-           background.transform.Find("Canvas/PlayerName").GetComponent<TMP_Text>(), background.transform.Find("Canvas/Profile").GetComponent<Image>(), maxHealth, GetComponent<AbilityController>().maxAbilityPoints);
+       _holdTransform = background.transform.Find("Hold/HoldPos").transform;
+       _nextTransforms = new[] { background.transform.Find("Next/Background/NextPos").transform,  background.transform.Find("Next/Background2/NextPos2").transform };
+       _garbageIndicator =  background.transform.Find("GarbageIndicator/Garbage").GetComponent<TMP_Text>();
+       GetComponent<PlayerUI>().SetReferences(background.transform.Find("HealthBar").GetComponent<Slider>(), background.transform.Find("AbilityBar").GetComponent<Slider>(),
+           background.transform.Find("PlayerName").GetComponent<TMP_Text>(), background.transform.Find("Profile").GetComponent<Image>(), maxHealth, GetComponent<AbilityController>().maxAbilityPoints);
    }
 
    /// <summary>

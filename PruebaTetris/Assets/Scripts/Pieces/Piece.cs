@@ -11,12 +11,19 @@ public abstract class Piece : NetworkBehaviour
     [HideInInspector] public bool check;
     [HideInInspector] public bool fallen;
     [HideInInspector] public bool justFallen;
+    public NetworkVariable<bool> networkDontMove = new (writePerm: NetworkVariableWritePermission.Owner);
     public bool exploded { get; protected set; }
     public Block block{ get; private set; }
     
     public void SetBlockReference(Block block)
     {
         this.block = block;
+    }
+
+    public void SetDontMove(bool value)
+    {
+        if(!IsOwner) return;
+        networkDontMove.Value = value;
     }
 
     public void CheckNeighbours(Grid<Piece> grid, LinkedList<Piece> list, LinkedList<Piece> garbageList)

@@ -22,7 +22,8 @@ public class LobbyManager : NetworkBehaviour
     public const string KEY_PLAYER_NAME = "PlayerName";
     public const string KEY_PLAYER_CHARACTER = "Character";
     public const string KEY_START_GAME = "Game";
-
+    
+    public bool gameStarted { get; private set; }
 
     public event EventHandler OnLeftLobby;
 
@@ -385,6 +386,7 @@ public class LobbyManager : NetworkBehaviour
                 if (joinedLobby.Players.Count == joinedLobby.MaxPlayers)
                 {
                     LobbyUI.Instance.SetPlayButton(false);
+                    gameStarted = true;
                     string relayCode = await Relay.Instance.CreateRelay();
 
                     Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions

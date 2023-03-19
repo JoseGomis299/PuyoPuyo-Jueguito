@@ -22,10 +22,10 @@ public class PieceNetwork : NetworkBehaviour
       }
       
       piece = GetComponent<Piece>();
-      _right.OnValueChanged = (value, newValue) => { transform.GetChild(3).gameObject.SetActive(true); };
-      _left.OnValueChanged = (value, newValue) => { transform.GetChild(1).gameObject.SetActive(true); };
-      _up.OnValueChanged = (value, newValue) => { transform.GetChild(0).gameObject.SetActive(true); };
-      _down.OnValueChanged = (value, newValue) => { transform.GetChild(2).gameObject.SetActive(true); };
+      _right.OnValueChanged = (value, newValue) => { transform.GetChild(3).gameObject.SetActive(newValue); };
+      _left.OnValueChanged = (value, newValue) => { transform.GetChild(1).gameObject.SetActive(newValue); };
+      _up.OnValueChanged = (value, newValue) => { transform.GetChild(0).gameObject.SetActive(newValue); };
+      _down.OnValueChanged = (value, newValue) => { transform.GetChild(2).gameObject.SetActive(newValue); };
    }
    private void Update()
    {
@@ -41,7 +41,10 @@ public class PieceNetwork : NetworkBehaviour
       else
       {
          if(_netState.Value.Scale == Vector3.zero) return;
-         transform.position = new Vector3(_netState.Value.Position.x+12, _netState.Value.Position.y, _netState.Value.Position.z);
+         
+         //transform.position = new Vector3(transform.position.x, _netState.Value.Position.y); 
+         if(!piece.networkDontMove.Value) transform.position = new Vector3(_netState.Value.Position.x+12, _netState.Value.Position.y);
+         
          transform.localScale = _netState.Value.Scale;
       }
    }

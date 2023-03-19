@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>Class <c>Block</c> the block structure that a player controls</summary>
@@ -215,15 +216,24 @@ public class Block
     {
         _advisedFromFalling = false;
         _resetTime = true;
+        
         for (int i = 0; i < pieceList.Length; i++)
         {   if(pieceList[i] == null) return;
-            pieceList[i].transform.position = grid.GetCellCenter(x, y + i);
+            pieceList[i].transform.position = grid?.GetCellCenter(x, y + i) ?? new Vector3(x, y);
             pieceList[i].transform.localScale = Vector3.one;
         }
+
+        if(NetworkManager.Singleton != null)
+            Timer.Instance.WaitForAction(() =>
+        {
+            foreach (var piece in pieceList) piece.SetDontMove(false);
+        }, 0.1f);
     }
     
     public void SetPosition(Vector3 position, float scaleMultiplier)
     {
+        if(NetworkManager.Singleton != null) foreach (var piece in pieceList) piece.SetDontMove(true);
+
         for (int i = 0; i < pieceList.Length; i++)
         {
             if(pieceList[i] == null) return;
