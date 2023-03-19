@@ -134,7 +134,7 @@ public class Block
             
             //Set values in the grid and make the necessary pieces explode or fall
             fallen = true;
-            _pieceController.SetPiecesValue();
+            _pieceController.SetPiecesValue(false);
             return;
         }
 

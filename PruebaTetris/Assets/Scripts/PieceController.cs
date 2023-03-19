@@ -51,7 +51,7 @@ public class PieceController : NetworkBehaviour
    private Transform[] _nextTransforms;
    
    //THE GRID WHERE THE PIECES ARE PLACED
-   private Grid<Piece> _grid;
+   public Grid<Piece> grid { get; private set; }
 
    //************LISTS**************
    
@@ -73,11 +73,10 @@ public class PieceController : NetworkBehaviour
    private bool _stopPlacing;
    private bool _doNotGenerate;
    private float _health;
-   private float _maxHealth = 10;
+   private NetworkVariable<float> _networkHealth = new NetworkVariable<float>(writePerm: NetworkVariableWritePermission.Owner);
+   public float maxHealth { get; private set; }= 10;
 
    private bool _isOnline;
-   private bool _usingAbility;
-
    //************SCORE PARAMETERS**************
    
    private int combo = 0;
@@ -102,8 +101,8 @@ public class PieceController : NetworkBehaviour
 
    private void Awake()
    {
-       _maxHealth = 10;
-       _health = _maxHealth;
+       maxHealth = 10;
+       _health = maxHealth;
    }
 
    private void Start()
@@ -120,16 +119,13 @@ public class PieceController : NetworkBehaviour
        
        // SET POSITION ON THE SCREEN + CREATE GRID
        InitialPosition();
-       _grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
+       grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
 
        if (_isOnline)
        {
-           _networkGarbageReceiveText.OnValueChanged = (value, newValue) =>
-           {
-               _garbageIndicator.text = newValue.ToString();
-           };
+           _networkGarbageReceiveText.OnValueChanged = (value, newValue) => { _garbageIndicator.text = newValue.ToString(); };
+           _networkHealth.OnValueChanged = (value, newValue) => { OnHealthChanged?.Invoke(newValue); };
        }
-           
        if (_isOnline && !IsOwner) { return; }
 
        // GENERATE FIRST BLOCK
@@ -170,12 +166,12 @@ public class PieceController : NetworkBehaviour
            if (_nextBlocks[0] == null)
            {
                currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                   Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                   Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
 
                for (int i = 0; i < _nextBlocks.Length; i++)
                {
                    _nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                       Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                       Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
                }
            }
            
@@ -189,11 +185,11 @@ public class PieceController : NetworkBehaviour
                    _nextBlocks[i] = _nextBlocks[i + 1];
                }
                _nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                   Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                   Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
            }
            
            //SETS EVERY BLOCK TO ITS CORRESPONDENT POSITION
-           currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+           currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
            for (int i = 0; i < _nextBlocks.Length; i++)
            {
                _nextBlocks[i].SetPosition(_nextTransforms[i].position, i == 0 ? 0.75f : 0.75f * 0.5f * i);
@@ -237,12 +233,12 @@ public class PieceController : NetworkBehaviour
             if (_nextBlocks[0] == null)
             {
                 currentBlock = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
 
                 for (int i = 0; i < _nextBlocks.Length; i++)
                 {
                     _nextBlocks[i] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                        Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this._grid, this);
+                        Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), this.grid, this);
 
                     for (int j = 0; j < _nextBlocks[i].GetPieces().Length; j++)
                         _nextBlocks[i].GetPieces()[j].transform.GetComponent<NetworkObject>()
@@ -265,7 +261,7 @@ public class PieceController : NetworkBehaviour
                 }
 
                 _nextBlocks[^1] = new Block(Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]),
-                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), _grid, this);
+                    Instantiate(availablePieces[Random.Range(0, availablePieces.Length)]), grid, this);
 
                 for (int i = 0; i < _nextBlocks[^1].GetPieces().Length; i++)
                     _nextBlocks[^1].GetPieces()[i].transform.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
@@ -273,7 +269,7 @@ public class PieceController : NetworkBehaviour
 
 
             //SETS EVERY BLOCK TO ITS CORRESPONDENT POSITION IN THE SERVER
-            currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+            currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
             for (int i = 0; i < _nextBlocks.Length; i++)
             {
                 _nextBlocks[i].SetPosition(_nextTransforms[i].position, i == 0 ? 0.75f : 0.75f * 0.5f * i);
@@ -329,14 +325,14 @@ public class PieceController : NetworkBehaviour
         {
             currentPieces[0].TryGet(out var piece0);
             currentPieces[1].TryGet(out var piece1);
-            currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this); 
+            currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
             nextPieces1[0].TryGet(out  piece0);
             nextPieces1[1].TryGet(out  piece1);
-            _nextBlocks[0] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this); 
+            _nextBlocks[0] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
             nextPieces2[0].TryGet(out  piece0);
             nextPieces2[1].TryGet(out  piece1);
-            _nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), _grid, this);
-            currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+            _nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
+            currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
             for (int i = 0; i < _nextBlocks.Length; i++)
             {
                 _nextBlocks[i].SetPosition(_nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
@@ -375,7 +371,7 @@ public class PieceController : NetworkBehaviour
        else
        {
            (_holdBlock, currentBlock) = (currentBlock, _holdBlock);
-           currentBlock.SetPositionInGrid(Random.Range(0, _grid.GetWidth()), _grid.GetHeight());
+           currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
        }
        
        //PLACES THE BLOCK IN _holdTransform.position
@@ -391,14 +387,14 @@ public class PieceController : NetworkBehaviour
    public void InstantDown()
    {
        if(currentBlock == null) return;
-       if(!_grid.IsInBounds(currentBlock.GetPieces()[1].transform.position) || _grid.GetValue(currentBlock.GetPieces()[0].transform.position)) return;
+       if(!grid.IsInBounds(currentBlock.GetPieces()[1].transform.position) || grid.GetValue(currentBlock.GetPieces()[0].transform.position)) return;
 
        currentBlock.fallen = true;
        
        //IF currentBlock IS ROTATING FORCES IT TO FINISH ITS ROTATION
        if (currentBlock.rotating)
        {
-           currentBlock.GetPieces()[1].ForceRotation(_grid, currentBlock.rotation);
+           currentBlock.GetPieces()[1].ForceRotation(grid, currentBlock.rotation);
        }
        
        //SETS EVERY currentBlock's PIECE POSITION
@@ -407,17 +403,17 @@ public class PieceController : NetworkBehaviour
            var position = CalculateFinalPiecePosition(currentBlock.GetPieces()[i].transform.position);
            switch (currentBlock.rotation)
            {
-               case 0: currentBlock.GetPieces()[i].transform.position = _grid.GetCellCenter((int)position.x,(int)position.y+i);
+               case 0: currentBlock.GetPieces()[i].transform.position = grid.GetCellCenter((int)position.x,(int)position.y+i);
                    break;
-               case 180: currentBlock.GetPieces()[i].transform.position = _grid.GetCellCenter((int)position.x,(int)position.y+(currentBlock.GetPieces().Length-1)-i);
+               case 180: currentBlock.GetPieces()[i].transform.position = grid.GetCellCenter((int)position.x,(int)position.y+(currentBlock.GetPieces().Length-1)-i);
                    break;
-               default: currentBlock.GetPieces()[i].transform.position = _grid.GetCellCenter((int)position.x,(int)position.y);
+               default: currentBlock.GetPieces()[i].transform.position = grid.GetCellCenter((int)position.x,(int)position.y);
                    break;
            }
        }
 
        //SETS THE PIECES VALUE IN THE GRID
-       SetPiecesValue();
+       SetPiecesValue(false);
    }
 
    /// <summary>
@@ -427,10 +423,10 @@ public class PieceController : NetworkBehaviour
    ///
    private Vector2 CalculateFinalPiecePosition(Vector3 origin)
    {
-       _grid.GetXY(origin, out var x, out var y);
-       for (int i = 0; i < _grid.GetHeight(); i++)
+       grid.GetXY(origin, out var x, out var y);
+       for (int i = 0; i < grid.GetHeight(); i++)
        {
-           if (_grid.GetValue(x,i) != null) continue;
+           if (grid.GetValue(x,i) != null) continue;
            return new Vector2(x, i);
        }
        return Vector2.zero;
@@ -443,15 +439,15 @@ public class PieceController : NetworkBehaviour
    ///
    private void MakeAllFall()
    {
-       for (int y = 0; y < _grid.GetHeight(); y++)
+       for (int y = 0; y < grid.GetHeight(); y++)
        {
-           for (int x = 0; x < _grid.GetWidth(); x++)
+           for (int x = 0; x < grid.GetWidth(); x++)
            {
-               if (_grid.GetValue(x,y) != null)
+               if (grid.GetValue(x,y) != null)
                {
-                   if (!_grid.GetValue(x,y).FallCoroutine(_grid, fallSpeed, this))
+                   if (!grid.GetValue(x,y).FallCoroutine(grid, fallSpeed, this))
                    {
-                       _grid.SetValue(_grid.GetValue(x,y).transform.position, null);
+                       grid.SetValue(grid.GetValue(x,y).transform.position, null);
                    }
                }
            }
@@ -472,21 +468,21 @@ public class PieceController : NetworkBehaviour
    /// This process is repeated until there are no more combinations</para>
    /// </summary>
    ///
-   public void SetPiecesValue()
+   public void SetPiecesValue(bool usingAbility)
    {
        if(_stopPlacing || (_isOnline && !IsOwner)) return;
        
-       StartCoroutine(_SetPiecesValue());
+       StartCoroutine(_SetPiecesValue(usingAbility));
    }
    
-   private IEnumerator _SetPiecesValue()
+   private IEnumerator _SetPiecesValue(bool usingAbility)
     {
         //IF currentBlock != null MAKES THE CURRENT BLOCK PIECES FALL BEFORE MAKING THEM EXPLODE
-        if (currentBlock != null && !_usingAbility)
+        if (currentBlock != null && !usingAbility)
         {
             foreach (var piece in currentBlock.GetPieces())
             {
-                piece.SetValue(_grid, this);
+                piece.SetValue(grid, this);
             }
             
             GetAllPieces();
@@ -521,7 +517,7 @@ public class PieceController : NetworkBehaviour
             _garbage.Clear();
             
             piece.justFallen = false;
-            piece.CheckNeighbours(_grid, _neighbours, _garbage);
+            piece.CheckNeighbours(grid, _neighbours, _garbage);
 
             //IF _neighbours.Count >= 4 IT MEANS THAT THERE IS A COMBINATION
             if (_neighbours.Count >= 4)
@@ -574,11 +570,11 @@ public class PieceController : NetworkBehaviour
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
-                    p.Explode(_grid);
+                    p.Explode(grid);
                 }
                 foreach (var p in _garbage)
                 {
-                    p.Explode(_grid);
+                    p.Explode(grid);
                 }
             }
             
@@ -633,7 +629,7 @@ public class PieceController : NetworkBehaviour
             if (piece == null || piece.exploded) continue;
             
             _neighbours.Clear();
-            piece.CheckNeighbours( _grid,  _neighbours, _garbage);
+            piece.CheckNeighbours( grid,  _neighbours, _garbage);
 
             foreach (var p in _neighbours)
             {
@@ -646,17 +642,17 @@ public class PieceController : NetworkBehaviour
         _stopPlacing = startAgain;
 
         //IF THERE ARE MORE COMBINATIONS START AGAIN
-        if (startAgain) StartCoroutine(_SetPiecesValue());
+        if (startAgain) StartCoroutine(_SetPiecesValue(usingAbility));
         
         //ELSE GENERATE A NEW BLOCK AND THROW GARBAGE IF COMBO > 0
         else
         {
-            if (!_usingAbility)
+            if (!usingAbility)
             {
                 if (!_isOnline) GenerateBlock();
                 else OnlineBlockGeneration();
             }
-            else _usingAbility = false;
+            else usingAbility = false;
 
             if (combo > 0)
             {
@@ -676,13 +672,13 @@ public class PieceController : NetworkBehaviour
    {
        _pieces.Clear();
 
-       for (int x = 0; x < _grid.GetWidth(); x++)
+       for (int x = 0; x < grid.GetWidth(); x++)
        {
-           for (int y = 0; y < _grid.GetHeight(); y++)
+           for (int y = 0; y < grid.GetHeight(); y++)
            {
-               if (_grid.GetValue(x, y) != null && !_grid.GetValue(x, y).exploded && _grid.GetValue(x, y).justFallen)
+               if (grid.GetValue(x, y) != null && !grid.GetValue(x, y).exploded && grid.GetValue(x, y).justFallen)
                {
-                   _pieces.AddLast(_grid.GetValue(x, y));
+                   _pieces.AddLast(grid.GetValue(x, y));
                }
            }
        }
@@ -695,13 +691,13 @@ public class PieceController : NetworkBehaviour
    { 
        _pieces.Clear();
         
-       for (int x = 0; x < _grid.GetWidth(); x++)
+       for (int x = 0; x < grid.GetWidth(); x++)
        {
-           for (int y = 0; y < _grid.GetHeight(); y++)
+           for (int y = 0; y < grid.GetHeight(); y++)
            {
-               if (_grid.GetValue(x, y) != null && !_grid.GetValue(x, y).exploded)
+               if (grid.GetValue(x, y) != null && !grid.GetValue(x, y).exploded)
                {
-                   _pieces.AddLast(_grid.GetValue(x, y));
+                   _pieces.AddLast(grid.GetValue(x, y));
                }
            }
        }
@@ -713,15 +709,15 @@ public class PieceController : NetworkBehaviour
    public void CleanStage()
    {
        if(_isOnline && !IsOwner) return;
-       for (int x = 0; x < _grid.GetWidth(); x++)
+       for (int x = 0; x < grid.GetWidth(); x++)
        {
-           for (int y = 0; y < _grid.GetHeight(); y++)
+           for (int y = 0; y < grid.GetHeight(); y++)
            {
-               if (_grid.GetValue(x, y) != null)
+               if (grid.GetValue(x, y) != null)
                {
-                   if(!_isOnline)Destroy(_grid.GetValue(x, y).gameObject);
-                   else _grid.GetValue(x,y).Despawn();
-                   _grid.SetValue(x, y, null);
+                   if(!_isOnline)Destroy(grid.GetValue(x, y).gameObject);
+                   else grid.GetValue(x,y).Despawn();
+                   grid.SetValue(x, y, null);
                }
            }
        }
@@ -777,7 +773,7 @@ public class PieceController : NetworkBehaviour
        _nextTransforms = new[] { background.transform.Find("Canvas/Next/Background/NextPos").transform,  background.transform.Find("Canvas/Next/Background2/NextPos2").transform };
        _garbageIndicator =  background.transform.Find("Canvas/GarbageIndicator/Garbage").GetComponent<TMP_Text>();
        GetComponent<PlayerUI>().SetReferences(background.transform.Find("Canvas/HealthBar").GetComponent<Slider>(), background.transform.Find("Canvas/AbilityBar").GetComponent<Slider>(),
-           background.transform.Find("Canvas/PlayerName").GetComponent<TMP_Text>(), background.transform.Find("Canvas/Profile").GetComponent<Image>(), _maxHealth, GetComponent<AbilityController>().maxAbilityPoints);
+           background.transform.Find("Canvas/PlayerName").GetComponent<TMP_Text>(), background.transform.Find("Canvas/Profile").GetComponent<Image>(), maxHealth, GetComponent<AbilityController>().maxAbilityPoints);
    }
 
    /// <summary>
@@ -786,14 +782,14 @@ public class PieceController : NetworkBehaviour
    public int RemoveGarbage()
    {
        int count = 0;
-       for (int x = 0; x < _grid.GetWidth(); x++)
+       for (int x = 0; x < grid.GetWidth(); x++)
        {
-           for (int y = 0; y < _grid.GetHeight(); y++)
+           for (int y = 0; y < grid.GetHeight(); y++)
            {
-               var piece = _grid.GetValue(x, y);
+               var piece = grid.GetValue(x, y);
                if (piece != null && !piece.exploded && piece is Garbage)
                {
-                   piece.Explode(_grid);
+                   piece.Explode(grid);
                    count++;
                }
            }
@@ -804,12 +800,22 @@ public class PieceController : NetworkBehaviour
        //WAIT UNTIL GARBAGE PIECES HAS DISAPPEARED
        Timer.Instance.WaitForAction(() =>
        {
-           _usingAbility = true;
-           SetPiecesValue();
+           SetPiecesValue(true);
        }, 0.25f);
        return count;
    }
 
+   public void AddHealth(float value)
+   {
+       if(_isOnline && !IsOwner) return;            
+       _health += value;
+       if (_health > maxHealth) _health = maxHealth;
+       else if (_health < 0) _health = 0;
+
+       if(IsOwner) _networkHealth.Value = _health;
+       else OnHealthChanged?.Invoke(_health);
+   }
+   
    #endregion
    //******************END GRID UTILITIES REGION********************
 
@@ -896,10 +902,11 @@ public class PieceController : NetworkBehaviour
                if (!_isOnline)
                {
                    Garbage g = Instantiate(garbagePieces[0]);
-                   g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+                   g.SetPositionInGrid(posX, grid.GetHeight() + posY, grid);
+                   g.SetValues(1, true, this);
                    _currentGarbage.AddLast(g);
                }
-               else GenerateGarbageServerRpc(posX, posY, 1);
+               else GenerateGarbageServerRpc(posX, posY, 1, true);
                
                posX++;
            }
@@ -915,11 +922,11 @@ public class PieceController : NetworkBehaviour
                if (!_isOnline)
                {
                    Garbage g = Instantiate(garbagePieces[0]);
-                   g.SetHealth(2);
-                   g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+                   g.SetValues(2, false, this);
+                   g.SetPositionInGrid(posX, grid.GetHeight() + posY, grid);
                    _currentGarbage.AddLast(g);
                }
-               else GenerateGarbageServerRpc(posX, posY, 2);
+               else GenerateGarbageServerRpc(posX, posY, 2, false);
 
                posX++;
            }
@@ -931,7 +938,7 @@ public class PieceController : NetworkBehaviour
            foreach (Piece garbage in _currentGarbage)
            {
                if (garbage == null) continue;
-               garbage.FallCoroutine(_grid, fallSpeed, this);
+               garbage.FallCoroutine(grid, fallSpeed, this);
            }
 
            //WAIT UNTIL EVERY PIECE HAS FALLEN
@@ -967,7 +974,7 @@ public class PieceController : NetworkBehaviour
        /// <param name="health">The number of times that the Garbage has to be hit to explode</param>
        /// </summary>
        [ServerRpc(RequireOwnership = false)]
-       private void GenerateGarbageServerRpc(int x, int y, int health, ServerRpcParams serverRpcParams = default)
+       private void GenerateGarbageServerRpc(int x, int y, int health, bool explodesWithTime, ServerRpcParams serverRpcParams = default)
        {
            var id = serverRpcParams.Receive.SenderClientId;
            ClientRpcParams clientRpcParams = new ClientRpcParams
@@ -982,7 +989,7 @@ public class PieceController : NetworkBehaviour
            g.GetComponent<NetworkObject>().SpawnWithOwnership(id, true);
 
            NetworkObjectReference garbageReference = new NetworkObjectReference(g.GetComponent<NetworkObject>());
-           SetGarbageClientRpc(garbageReference, x, y, health, clientRpcParams);
+           SetGarbageClientRpc(garbageReference, x, y, health,explodesWithTime, clientRpcParams);
        }
 
        /// <summary>
@@ -993,13 +1000,13 @@ public class PieceController : NetworkBehaviour
        /// <param name="health">The number of times that the Garbage has to be hit to explode</param>
        /// </summary>
        [ClientRpc]
-       private void SetGarbageClientRpc(NetworkObjectReference garbageRef, int posX, int posY, int health, ClientRpcParams clientRpcParams)
+       private void SetGarbageClientRpc(NetworkObjectReference garbageRef, int posX, int posY, int health, bool explodesWithTime, ClientRpcParams clientRpcParams)
        {
            garbageRef.TryGet(out var garbage);
            var g = garbage.GetComponent<Garbage>();
 
-           g.SetHealth(health);
-           g.SetPositionInGrid(posX, _grid.GetHeight() + posY, _grid);
+           g.SetValues(health, explodesWithTime, this);
+           g.SetPositionInGrid(posX, grid.GetHeight() + posY, grid);
            _currentGarbage.AddLast(g);
        }
 

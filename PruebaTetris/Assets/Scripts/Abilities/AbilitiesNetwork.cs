@@ -75,7 +75,13 @@ public class AbilitiesNetwork : NetworkBehaviour
                 mine.EnemyThrowGarbageServerRpc(0, 12);
                 usingAbility = false;
             };
-            case 3: return (mine, enemy) => { };
+            case 3: return (mine, enemy) =>
+            {
+                if(enemy.IsOwner) return;
+
+                mine.AddHealth(mine.maxHealth/2f);
+                usingAbility = false;
+            };
         }
 
         return null;
