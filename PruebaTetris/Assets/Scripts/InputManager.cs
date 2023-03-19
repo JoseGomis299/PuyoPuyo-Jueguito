@@ -32,7 +32,7 @@ public class InputManager : NetworkBehaviour
         if (NetworkManager.Singleton == null && PlayerSpawnController.Instance.playerCount > 1)
         {
             playerTwo = PlayerSpawnController.Instance.SetPlayerID() == 1;
-            PlayerSpawnController.Instance.SetPlayerAbilities(_abilityController, playerTwo);
+            PlayerSpawnController.Instance.SetPlayerData(_abilityController, GetComponent<PlayerUI>(), playerTwo);
             _myInput.SwitchCurrentActionMap("TwoPlayers");
         }
         else

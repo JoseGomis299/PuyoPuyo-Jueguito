@@ -50,21 +50,22 @@ public class PlayerSpawnController : NetworkBehaviour
         return -1;
     }
 
-    public void SetPlayerAbilities(AbilityController abilityController, bool playerTwo)
+    public void SetPlayerData(AbilityController abilityController, PlayerUI playerUI, bool playerTwo)
     {
         string json = "";
         
         if (playerTwo)
         {
-            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
+            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
         }
         else
         {
-            json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
+            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
         }
         
-        CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json); 
-        abilityController.SetAbility(characterAbilityData.abilityId);
+        CharacterData characterData = JsonUtility.FromJson<CharacterData>(json); 
+        abilityController.SetAbility(characterData.abilityId);
+        playerUI.SetValues(characterData.playerName, characterData.characterProfile, characterData.characterBody);
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -74,18 +75,19 @@ public class PlayerSpawnController : NetworkBehaviour
         var player = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
         player.GetComponent<NetworkObject>().SpawnAsPlayerObject(id, true);
 
-        SetAbilityClientRpc(new NetworkObjectReference(player));
+        SetPlayerDataClientRpc(new NetworkObjectReference(player));
     }
     
     [ClientRpc]
-    private void SetAbilityClientRpc(NetworkObjectReference reference)
+    private void SetPlayerDataClientRpc(NetworkObjectReference reference)
     {
-        reference.TryGet(out var abilityController);
+        reference.TryGet(out var player);
       
-        string json = File.ReadAllText(Application.persistentDataPath + "/AbilitieDataFile.json");
-        CharacterAbilityData characterAbilityData = JsonUtility.FromJson<CharacterAbilityData>(json);
-
-        abilityController.GetComponent<AbilityController>().SetAbility(characterAbilityData.abilityId);
+        string json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
+        CharacterData characterData = JsonUtility.FromJson<CharacterData>(json);
+        
+        player.GetComponent<AbilityController>().SetAbility(characterData.abilityId);
+        player.GetComponent<PlayerUI>().SetValues(characterData.playerName, characterData.characterProfile, characterData.characterBody);
         waitingPlayers.SetActive(false);
     }
 }

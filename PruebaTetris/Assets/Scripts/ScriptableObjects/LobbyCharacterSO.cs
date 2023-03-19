@@ -8,5 +8,6 @@ public class LobbyCharacterSO :ScriptableObject
     [Multiline]public string abilityDescription;
 
     public Sprite characterBody;
+    public Sprite characterProfile;
     public int id;
 }

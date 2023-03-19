@@ -54,7 +54,7 @@ public class Block
         {
             if (!MoveForRotation(new Vector2(-xFactor, -yFactor)))
             {
-                if (!hasJumped && grid.GetValue(x, y+1) == null)
+                if (!hasJumped && grid.GetValue(x, y+1) == null && grid.IsInBounds(x, y+1))
                 {
                     hasJumped = true;
                     MoveForRotation(Vector2.up);

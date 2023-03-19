@@ -15,6 +15,6 @@ MonoBehaviour:
   name: Yung Kim Min
   abilityName: Heart Melting
   abilityDescription: Heals himself.
-  characterIcon: {fileID: 0}
   characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
+  characterProfile: {fileID: 21300000, guid: d7413f52dd32f194ba85ccc2f0732881, type: 3}
   id: 3

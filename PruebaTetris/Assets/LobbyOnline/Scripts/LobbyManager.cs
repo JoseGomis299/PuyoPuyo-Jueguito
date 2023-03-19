@@ -147,22 +147,23 @@ public class LobbyManager : NetworkBehaviour
                     if (!IsLobbyHost())
                     {
                         Relay.Instance.JoinRelay(joinedLobby.Data[KEY_START_GAME].Value);
-                        CreateAbility();
+                        CreateCharacter();
                     }
                     if(IsLobbyHost())
                     {
-                        CreateAbility();
+                        CreateCharacter();
                         await Task.Delay(100);
                         joinedLobby = null;
                         NetworkManager.Singleton.SceneManager.LoadScene("1v1(Online)", LoadSceneMode.Single);
                     }
                     joinedLobby = null;
                 }
+                
             }
         }
     }
 
-    private void CreateAbility()
+    private void CreateCharacter()
     {
         string playerId = AuthenticationService.Instance.PlayerId;
         Player player = null;
@@ -175,13 +176,15 @@ public class LobbyManager : NetworkBehaviour
                 break;
             }
         }
-        
-        PlayerCharacter playerCharacter =
-            Enum.Parse<PlayerCharacter>(player.Data[KEY_PLAYER_CHARACTER].Value);
-        var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
-        CharacterAbilityData characterAbilityData = new CharacterAbilityData(characterSo.characterBody, characterSo.id);
-        string json = JsonUtility.ToJson(characterAbilityData, true);
-        File.WriteAllText(Application.persistentDataPath + "/AbilitieDataFile.json", json);
+
+        if (player != null)
+        {
+            PlayerCharacter playerCharacter = Enum.Parse<PlayerCharacter>(player.Data[KEY_PLAYER_CHARACTER].Value);
+            var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
+            CharacterData characterData = new CharacterData(characterSo.characterBody, characterSo.id, characterSo.characterProfile, player.Data[KEY_PLAYER_NAME].Value);
+            string json = JsonUtility.ToJson(characterData, true);
+            File.WriteAllText(Application.persistentDataPath + "/PlayerDataFile.json", json);
+        }
     }
 
     public Lobby GetJoinedLobby() {
@@ -396,7 +399,6 @@ public class LobbyManager : NetworkBehaviour
             catch (LobbyServiceException e)
             {
                 Debug.Log(e);
-
             }
         }
     }

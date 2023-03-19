@@ -11,6 +11,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 using TMPro;
+using UnityEngine.UI;
 
 /// <summary>Class <c>PieceController</c> the controller for a Player's Grid</summary>
 ///
@@ -71,6 +72,8 @@ public class PieceController : NetworkBehaviour
    public bool held { get; private set; }
    private bool _stopPlacing;
    private bool _doNotGenerate;
+   private float _health;
+   private float _maxHealth = 10;
 
    private bool _isOnline;
    private bool _usingAbility;
@@ -88,11 +91,20 @@ public class PieceController : NetworkBehaviour
    private NetworkVariable<int> _networkGarbageReceiveText = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner);
    
    private bool _receivingGarbage;
+   
+   //************EVENTS**************
+   public event Action<float> OnHealthChanged;
 
    #endregion
    //******************END GLOBAL VARIABLES REGION********************
    
    //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+   private void Awake()
+   {
+       _maxHealth = 10;
+       _health = _maxHealth;
+   }
 
    private void Start()
    {
@@ -102,7 +114,7 @@ public class PieceController : NetworkBehaviour
         _neighbours = new LinkedList<Piece>();
         _pieces = new LinkedList<Piece>();
         _garbage = new LinkedList<Piece>();
-        
+
        _nextBlocks = new Block[2]; 
        _inputManager = GetComponent<InputManager>();
        
@@ -557,6 +569,8 @@ public class PieceController : NetworkBehaviour
 
                 _garbageQuantityThrow += cantidadbasuratirar;
                 
+                GetComponent<AbilityController>().AddAbilityPoints(_neighbours.Count*0.3f*combo);
+                
                 //sumar puntuación aquí, "_neighbours.count" es el número de piezas que van a explotar
                 foreach (var p in _neighbours)
                 {
@@ -730,44 +744,40 @@ public class PieceController : NetworkBehaviour
    /// </summary>
    private void InitialPosition()
    {
+       GameObject background = null;
+
        if (!_isOnline)
        {
            if (_inputManager.playerTwo)
            {
+               background = GameObject.Find("BackgroundRight");
                transform.position = Vector3.right * 3;
-               _holdTransform = GameObject.Find("HoldPosR").transform;
-               _nextTransforms = new[]
-                   { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
-               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
            else
            {
+               background = GameObject.Find("BackgroundLeft");
                transform.position = Vector3.right * -9;
-               _holdTransform = GameObject.Find("HoldPosL").transform;
-               _nextTransforms = new[]
-                   { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
-               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
        }
        else
        {
            if (IsOwner)
            {
+               background = GameObject.Find("BackgroundLeft");
                transform.position = Vector3.right * -9;
-               _holdTransform = GameObject.Find("HoldPosL").transform;
-               _nextTransforms = new[]
-                   { GameObject.Find("NextPosL").transform, GameObject.Find("NextPos2L").transform };
-               _garbageIndicator = GameObject.Find("GarbageL").GetComponent<TMP_Text>();
            }
            else
            {
+               background = GameObject.Find("BackgroundRight");
                transform.position = Vector3.right * 3;
-               _holdTransform = GameObject.Find("HoldPosR").transform;
-               _nextTransforms = new[]
-                   { GameObject.Find("NextPosR").transform, GameObject.Find("NextPos2R").transform };
-               _garbageIndicator = GameObject.Find("GarbageR").GetComponent<TMP_Text>();
            }
        }
+       
+       _holdTransform = background.transform.Find("Canvas/Hold/HoldPos").transform;
+       _nextTransforms = new[] { background.transform.Find("Canvas/Next/Background/NextPos").transform,  background.transform.Find("Canvas/Next/Background2/NextPos2").transform };
+       _garbageIndicator =  background.transform.Find("Canvas/GarbageIndicator/Garbage").GetComponent<TMP_Text>();
+       GetComponent<PlayerUI>().SetReferences(background.transform.Find("Canvas/HealthBar").GetComponent<Slider>(), background.transform.Find("Canvas/AbilityBar").GetComponent<Slider>(),
+           background.transform.Find("Canvas/PlayerName").GetComponent<TMP_Text>(), background.transform.Find("Canvas/Profile").GetComponent<Image>(), _maxHealth, GetComponent<AbilityController>().maxAbilityPoints);
    }
 
    /// <summary>

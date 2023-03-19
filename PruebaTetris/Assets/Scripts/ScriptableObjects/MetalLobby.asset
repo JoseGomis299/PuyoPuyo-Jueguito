@@ -16,6 +16,6 @@ MonoBehaviour:
   abilityName: Pure Decadence
   abilityDescription: Throws garbage which has 2 points of health and doesn't destroys
     with timeto the enemy.
-  characterIcon: {fileID: 0}
   characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
+  characterProfile: {fileID: 21300000, guid: ec1c53200d7e385428ee41fb94009d87, type: 3}
   id: 2

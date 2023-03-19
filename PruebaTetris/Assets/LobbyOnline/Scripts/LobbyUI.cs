@@ -65,7 +65,6 @@ public class LobbyUI : MonoBehaviour {
     }
     private void LobbyManager_OnLeftLobby(object sender, System.EventArgs e) {
         ClearLobby();
-        SetPlayButton(true);
         Hide();
     }
 
@@ -89,8 +88,8 @@ public class LobbyUI : MonoBehaviour {
                 LobbyManager.Instance.IsLobbyHost() &&
                 player.Id != AuthenticationService.Instance.PlayerId // Don't allow kick self
             );
-            
-            if(!LobbyManager.Instance.IsLobbyHost())SetPlayButton(false);
+
+            SetPlayButton(LobbyManager.Instance.IsLobbyHost() && lobby.Players.Count >= 2 && LobbyManager.Instance.GetJoinedLobby().Data[LobbyManager.KEY_START_GAME].Value == "0");
 
             lobbyPlayerSingleUI.UpdatePlayer(player);
         }
