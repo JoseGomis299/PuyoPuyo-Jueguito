@@ -12,6 +12,23 @@ public class PlayerSpawnController : NetworkBehaviour
     [SerializeField] private GameObject waitingPlayers;
     public int playerCount { get; private set; }
     private int[] _playerIDs;
+    
+    public class StringContainer : INetworkSerializable
+    {
+        public string SomeText;
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            if (serializer.IsWriter)
+            {
+                serializer.GetFastBufferWriter().WriteValueSafe(SomeText);
+            }
+            else
+            {
+                serializer.GetFastBufferReader().ReadValueSafe(out SomeText);
+            }
+        }
+    }
+    
     private void Awake()
     {
         if(Instance != null && Instance != this) Destroy(gameObject);
@@ -82,10 +99,38 @@ public class PlayerSpawnController : NetworkBehaviour
     private void SetPlayerDataClientRpc(NetworkObjectReference reference)
     {
         reference.TryGet(out var player);
-      
-        string json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
-        CharacterData characterData = JsonUtility.FromJson<CharacterData>(json);
         
+        if (player.IsOwner)
+        {
+            string json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
+            var characterData = JsonUtility.FromJson<CharacterData>(json);
+            player.GetComponent<AbilityController>().SetAbility(characterData.abilityId);
+            player.GetComponent<PlayerUI>().SetValues(characterData.playerName, characterData.characterProfile, characterData.characterBody);
+            waitingPlayers.SetActive(false);
+
+            StringContainer playerData = new StringContainer
+            {
+                SomeText = json
+            };
+            
+            SendPlayerDataServerRpc(reference, playerData);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SendPlayerDataServerRpc(NetworkObjectReference playerReference, StringContainer playerData)
+    {
+        SetOtherPlayersDataClientRpc(playerReference, playerData);
+    }
+    
+    [ClientRpc]
+    private void SetOtherPlayersDataClientRpc(NetworkObjectReference playerReference, StringContainer playerData)
+    {
+        playerReference.TryGet(out var player);
+        
+        if(player.IsOwner) return;
+        
+        CharacterData characterData = JsonUtility.FromJson<CharacterData>(playerData.SomeText);
         player.GetComponent<AbilityController>().SetAbility(characterData.abilityId);
         player.GetComponent<PlayerUI>().SetValues(characterData.playerName, characterData.characterProfile, characterData.characterBody);
         waitingPlayers.SetActive(false);
