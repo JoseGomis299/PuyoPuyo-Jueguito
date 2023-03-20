@@ -73,11 +73,11 @@ public class PlayerSpawnController : NetworkBehaviour
         
         if (playerTwo)
         {
-            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
+            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile1.json");
         }
         else
         {
-            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
+            json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile0.json");
         }
         
         CharacterData characterData = JsonUtility.FromJson<CharacterData>(json); 
@@ -102,7 +102,7 @@ public class PlayerSpawnController : NetworkBehaviour
         
         if (player.IsOwner)
         {
-            string json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile.json");
+            string json = File.ReadAllText(Application.persistentDataPath + "/PlayerDataFile0.json");
             var characterData = JsonUtility.FromJson<CharacterData>(json);
             player.GetComponent<AbilityController>().SetAbility(characterData.abilityId);
             player.GetComponent<PlayerUI>().SetValues(characterData.playerName, characterData.characterProfile, characterData.characterBody);

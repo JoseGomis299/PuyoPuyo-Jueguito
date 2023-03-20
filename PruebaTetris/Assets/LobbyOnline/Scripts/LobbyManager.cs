@@ -184,7 +184,7 @@ public class LobbyManager : NetworkBehaviour
             var characterSo = LobbyAssets.Instance.GetSO(playerCharacter);
             CharacterData characterData = new CharacterData(characterSo.characterBody, characterSo.id, characterSo.characterProfile, player.Data[KEY_PLAYER_NAME].Value);
             string json = JsonUtility.ToJson(characterData, true);
-            File.WriteAllText(Application.persistentDataPath + "/PlayerDataFile.json", json);
+            File.WriteAllText(Application.persistentDataPath + "/PlayerDataFile0.json", json);
         }
     }
 

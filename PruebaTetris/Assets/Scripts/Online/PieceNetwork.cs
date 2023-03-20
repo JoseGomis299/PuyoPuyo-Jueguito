@@ -29,7 +29,6 @@ public class PieceNetwork : NetworkBehaviour
    }
    private void Update()
    {
-      
       if (IsOwner)
       {
          _netState.Value = new PieceNetworkData()

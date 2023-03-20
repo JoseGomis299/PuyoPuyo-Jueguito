@@ -53,6 +53,7 @@ public class Block
         bool hasJumped = false;
         while (!grid.IsInBoundsNoHeight(x, y) || grid.GetValue(x, y) != null)
         {
+            //TRY TO MOVE THE BLOCK TO FIT THE ROTATION
             if (!MoveForRotation(new Vector2(-xFactor, -yFactor)))
             {
                 if (!hasJumped && grid.GetValue(x, y+1) == null && grid.IsInBounds(x, y+1))
@@ -62,10 +63,27 @@ public class Block
                 }
                 else
                 {
+                    //IF THERE IS NO CHOICE MAKE A 180º ROTATION
+                    newRotation = this.rotation == 0 ? 180 : 0;
+                    xFactor = (int)Mathf.Sin(newRotation * Mathf.Deg2Rad);
+                    yFactor = (int) Mathf.Cos(newRotation*Mathf.Deg2Rad);
+                    rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
+                    grid.GetXY(rotatedPosition, out x, out y);
+                    while (grid.GetValue(x, y) != null || !grid.IsInBoundsNoHeight(x, y))
+                    {
+                        MoveForRotation(Vector2.up);
+                        rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
+                        grid.GetXY(rotatedPosition, out x, out y);
+                    }
+                    pieceList[1].transform.position = rotatedPosition;
+                    this.rotation = newRotation;
+                    stopFalling = false;
+                    _advisedFromFalling = false;
                     rotating = false;
                     return;
                 }
             }
+            
             rotatedPosition = new Vector3(pieceList[0].transform.position.x + xFactor, pieceList[0].transform.position.y + yFactor);
             grid.GetXY(rotatedPosition, out x, out y);
         }

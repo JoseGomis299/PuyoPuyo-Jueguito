@@ -11,6 +11,7 @@ public class LobbyCreateUI : MonoBehaviour {
 
 
     [SerializeField] private Button createButton;
+    [SerializeField] private Button quitButton;
     [SerializeField] private Button publicPrivateButton;
     [SerializeField] private TextMeshProUGUI publicPrivateText;
     [SerializeField] private TMP_InputField lobbyNameText;
@@ -24,6 +25,8 @@ public class LobbyCreateUI : MonoBehaviour {
         Instance = this;
         AuthenticateUI.onQuickJoin += Hide;
 
+        quitButton.onClick.AddListener(()=>Hide());
+        
         createButton.onClick.AddListener(() => {
             LobbyManager.Instance.CreateLobby(
                 lobbyName,
