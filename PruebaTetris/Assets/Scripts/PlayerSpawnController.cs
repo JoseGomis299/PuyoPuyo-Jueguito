@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerSpawnController : NetworkBehaviour
 {
@@ -35,12 +36,22 @@ public class PlayerSpawnController : NetworkBehaviour
         else Instance = this;
         _playerIDs = new int[] { -1, -1 };
 
-       if(NetworkManager != null) NetworkManager.OnClientConnectedCallback += SpawnPlayers;
+        if (NetworkManager != null)
+        {
+            NetworkManager.OnClientConnectedCallback += SpawnPlayers;
+            NetworkManager.OnClientDisconnectCallback += LeaveGame;
+        }
     }
 
     private void SpawnPlayers(ulong obj)
     {
         SpawnPlayerServerRpc();
+    }
+
+    private void LeaveGame(ulong obj)
+    {
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("Menu");
     }
 
     public void OnPlayerJoined()

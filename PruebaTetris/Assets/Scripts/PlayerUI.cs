@@ -27,9 +27,12 @@ public class PlayerUI : NetworkBehaviour
         _abilitySlider.maxValue = maxAbility;
         _healthSlider.maxValue = maxHealth;
         _healthSlider.value = maxHealth;
-        
-        _playerName.text = _playerNameValue;
-        _playerProfile.sprite = _playerProfileValue;
+
+        if (_playerProfileValue != null)
+        {
+            _playerName.text = _playerNameValue;
+            _playerProfile.sprite = _playerProfileValue;
+        }
 
         GetComponent<AbilityController>().OnAbilityPointsChanged += (newValue) => { _abilitySlider.value = newValue;};
         GetComponent<PieceController>().OnHealthChanged += (newValue) => { _healthSlider.value = newValue; };

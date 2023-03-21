@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class AuthenticateUI : MonoBehaviour {
@@ -9,6 +10,7 @@ public class AuthenticateUI : MonoBehaviour {
 
     [SerializeField] private Button lobbyButton;
     [SerializeField] private Button quickDrawButton;
+    [SerializeField] private Button quitButton;
     
     public static event Action onQuickJoin;
     private bool quickJoin;
@@ -18,6 +20,7 @@ public class AuthenticateUI : MonoBehaviour {
     {
         LobbyListUI.onLeaveLobbyList += () => gameObject.SetActive(true);
         
+        quitButton.onClick.AddListener(()=>SceneManager.LoadScene("Menu"));
         lobbyButton.onClick.AddListener(() =>
         {
             quickJoin = false;

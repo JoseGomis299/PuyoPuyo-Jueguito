@@ -21,6 +21,7 @@ public class LobbyUI : MonoBehaviour {
     [SerializeField] private Button changeReggaetonButton;
     [SerializeField] private Button leaveLobbyButton;
     [SerializeField] private Button PlayGameButton;
+    [SerializeField] private Button LobbyCrateButton;
 
 
     private void Awake() {
@@ -65,6 +66,7 @@ public class LobbyUI : MonoBehaviour {
     }
     private void LobbyManager_OnLeftLobby(object sender, System.EventArgs e) {
         ClearLobby();
+        LobbyCrateButton.Select();
         Hide();
     }
 

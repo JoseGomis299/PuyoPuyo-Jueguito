@@ -22,12 +22,15 @@ public class InputManager : NetworkBehaviour
 
     private PieceController _pieceController;
     private AbilityController _abilityController;
+
+    private PauseMenuUI _pauseMenu;
     private void Start()
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
         _myInput = gameObject.GetComponent<PlayerInput>();
         _pieceController = gameObject.GetComponent<PieceController>();
         _abilityController = GetComponent<AbilityController>();
+        _pauseMenu = GameObject.Find("Pause").transform.GetChild(0).GetComponent<PauseMenuUI>();
 
         if (NetworkManager.Singleton == null && PlayerSpawnController.Instance.playerCount > 1)
         {
@@ -52,7 +55,7 @@ public class InputManager : NetworkBehaviour
 
     public void OnDown(InputAction.CallbackContext context)
     {
-        if(playerTwo) return;
+        if(playerTwo|| _pauseMenu.paused) return;
         if (NetworkManager.Singleton != null && !IsOwner) return;
         if (context.started)
         {
@@ -95,7 +98,7 @@ public class InputManager : NetworkBehaviour
     public void OnHold(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(playerTwo || _pieceController.currentBlock == null) return;
+        if(playerTwo || _pieceController.currentBlock == null || _pauseMenu.paused) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
             _pieceController.Hold();
@@ -105,7 +108,7 @@ public class InputManager : NetworkBehaviour
     public void OnInstantDown(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(playerTwo) return;
+        if(playerTwo || _pauseMenu.paused) return;
         if (context.started)
         {
             _pieceController.InstantDown();
@@ -115,13 +118,14 @@ public class InputManager : NetworkBehaviour
     public void OnAbility(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(playerTwo) return;
+        if(playerTwo || _pauseMenu.paused) return;
         if (context.started)
         {
             _abilityController.UseAbility();
         }
     }
-
+    
+  
     #endregion
     
     #region Player2
@@ -134,7 +138,7 @@ public class InputManager : NetworkBehaviour
 
     public void OnDown1(InputAction.CallbackContext context)
     {
-        if(!playerTwo) return;
+        if(!playerTwo || _pauseMenu.paused) return;
         if (context.started)
         {
             _pieceController.fallSpeed *= fallSpeedBoost;
@@ -175,7 +179,7 @@ public class InputManager : NetworkBehaviour
     public void OnHold1(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(!playerTwo) return;
+        if(!playerTwo || _pauseMenu.paused) return;
         if (context.started && !_pieceController.currentBlock.fallen && !_pieceController.held)
         {
             _pieceController.Hold();
@@ -185,7 +189,7 @@ public class InputManager : NetworkBehaviour
     public void OnInstantDown1(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(!playerTwo) return;
+        if(!playerTwo || _pauseMenu.paused) return;
         if (context.started)
         {
             _pieceController.InstantDown();
@@ -195,7 +199,7 @@ public class InputManager : NetworkBehaviour
     public void OnAbility1(InputAction.CallbackContext context)
     {
         if (NetworkManager.Singleton != null && !IsOwner) return;
-        if(!playerTwo) return;
+        if(!playerTwo || _pauseMenu.paused) return;
         if (context.started)
         {
             _abilityController.UseAbility();
@@ -203,9 +207,26 @@ public class InputManager : NetworkBehaviour
     }
 
     #endregion
+
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        if (NetworkManager.Singleton != null && !IsOwner) return;
+        if (context.started)
+        {
+            if (_pauseMenu.paused)
+            {
+                _pauseMenu.Resume();
+            }
+            else
+            {
+                _pauseMenu.gameObject.SetActive(true);
+                if (NetworkManager.Singleton == null) Time.timeScale = 0;
+            }
+        }
+    }
     public void ManageInput()
     {
-        if(_pieceController.currentBlock == null) return;
+        if(_pieceController.currentBlock == null || _pauseMenu.paused) return;
         
         if (_moveDirection.magnitude > 0 && Time.time - _lastMove >= moveCooldown)
         {

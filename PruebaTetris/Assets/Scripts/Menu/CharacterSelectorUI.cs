@@ -38,7 +38,9 @@ public class CharacterSelectorUI : MonoBehaviour {
             UpdatePlayerCharacter(LobbyAssets.Instance.GetSO(LobbyManager.PlayerCharacter.Reggaeton));
         });
 
-        leaveLobbyButton.onClick.AddListener(() => {
+        leaveLobbyButton.onClick.AddListener(() =>
+        {
+            SceneManager.LoadScene("Menu");
         });
         PlayGameButton.onClick.AddListener(() => {
            SetPlayButton(false);
