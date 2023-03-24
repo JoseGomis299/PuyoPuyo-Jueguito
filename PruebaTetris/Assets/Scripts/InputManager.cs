@@ -213,11 +213,11 @@ public class InputManager : NetworkBehaviour
         if (NetworkManager.Singleton != null && !IsOwner) return;
         if (context.started)
         {
-            if (_pauseMenu.paused)
+            if (_pauseMenu.paused && _pauseMenu.gameObject.activeInHierarchy)
             {
                 _pauseMenu.Resume();
             }
-            else
+            else if (Time.timeScale != 0)
             {
                 _pauseMenu.gameObject.SetActive(true);
                 if (NetworkManager.Singleton == null) Time.timeScale = 0;

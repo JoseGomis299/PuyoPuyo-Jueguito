@@ -49,7 +49,7 @@ public class PlayerSpawnController : NetworkBehaviour
 
     private void SpawnPlayers(ulong obj)
     {
-        AudioManager.Instance.ChangeMusic(AudioManager.Instance.backgroundMusics[1]);
+//        AudioManager.Instance.ChangeMusic(AudioManager.Instance.backgroundMusics[1]);
         SpawnPlayerServerRpc();
     }
 

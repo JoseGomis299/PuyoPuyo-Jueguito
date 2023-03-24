@@ -135,7 +135,7 @@ public class Block
                 if (y1 >= grid.GetHeight())
                 {
                     fallen = true;
-                    _pieceController.CleanStage();
+                    _pieceController.LoseGame();
                 }
             }
             

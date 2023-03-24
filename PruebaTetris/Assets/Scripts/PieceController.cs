@@ -748,70 +748,54 @@ public class PieceController : NetworkBehaviour
    /// <summary>
    /// <para>Deletes every <see cref="Piece"/> in the grid</para>
    /// </summary>
-   public void CleanStage()
+   public void LoseGame()
    {
-       GameObject menu =  GameObject.Find("Pause").transform.GetChild(1).gameObject;
-        menu.SetActive(true);
-        TMP_Text winText;
-        TMP_Text loseText;
-        if (!_isOnline && GetComponent<InputManager>().playerTwo)
-        {
-            winText = menu.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
-            loseText = menu.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
-        }
-        else// if (!_isOnline)
-        {
-            winText = menu.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
-            loseText = menu.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
-        }
-        //else if () ;
-
-         winText.text = "WINNER";
-         loseText.text = "LOSER";
-
-        Time.timeScale = 0;
-
-
-
-        return;
-
-       if(_isOnline && !IsOwner) return;
-       for (int x = 0; x < grid.GetWidth(); x++)
+       if (_isOnline && IsOwner)
        {
-           for (int y = 0; y < grid.GetHeight(); y++)
-           {
-               if (grid.GetValue(x, y) != null)
-               {
-                   if(!_isOnline)Destroy(grid.GetValue(x, y).gameObject);
-                   else grid.GetValue(x,y).Despawn();
-                   grid.SetValue(x, y, null);
-               }
-           }
+           SetWinnerTextServerRpc();
+           return;
        }
 
-       if (currentBlock != null)
+       SetWinnerText(GetComponent<InputManager>().playerTwo);
+   }
+
+   private void SetWinnerText(bool condition)
+   {
+       var menu =  GameObject.Find("Pause").transform.GetChild(1);
+       if (menu == null) return;
+       
+       menu.gameObject.SetActive(true);
+       TMP_Text player2Text = menu.GetChild(2).gameObject.GetComponent<TMP_Text>();
+       TMP_Text player1Text = menu.GetChild(1).gameObject.GetComponent<TMP_Text>();
+       menu.transform.GetChild(3).GetComponent<Button>().Select();
+        
+       if (condition)
        {
-           foreach (var piece in currentBlock.GetPieces())
-           {
-               if (!_isOnline) Destroy(piece.gameObject);
-               else piece.Despawn();
-           }
+           player2Text.text = "LOSER";
+           player1Text.text = "WINNER"; 
+       }
+       else
+       {
+           player2Text.text = "WINNER";
+           player1Text.text = "LOSER";
        }
 
-       if(!_isOnline)GenerateBlock();
-       else OnlineBlockGeneration();
+       Time.timeScale = 0;
    }
 
     [ServerRpc]
-    private void SetWinnerTextServerRpc(ServerRpcParams serverRpcParams)
+    private void SetWinnerTextServerRpc(ServerRpcParams serverRpcParams = default)
     {
-
+        var id = serverRpcParams.Receive.SenderClientId;
+        NetworkObjectReference loser = new NetworkObjectReference(NetworkManager.ConnectedClients[id].PlayerObject);
+        SetWinnerTextClientRpc(loser);
     }
 
     [ClientRpc]
-    private void SetWinnerTextClientRpc()
+    private void SetWinnerTextClientRpc(NetworkObjectReference loserReference)
     {
-
+        loserReference.TryGet(out var loser);
+        SetWinnerText(!loser.IsOwner);
     }
 
     /// <summary>

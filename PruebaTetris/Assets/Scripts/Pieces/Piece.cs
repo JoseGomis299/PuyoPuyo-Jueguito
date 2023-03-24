@@ -104,7 +104,7 @@ public abstract class Piece : NetworkBehaviour
         
         if (y >= grid.GetHeight())
         {
-            pieceController.CleanStage();
+            pieceController.LoseGame();
             if (NetworkManager != null) Despawn();
             else Destroy(gameObject);
         }
