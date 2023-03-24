@@ -20,20 +20,11 @@ public class Garbage : Piece
         StartCoroutine(Explosion(grid));
     }
 
-    public override IEnumerator Explosion(Grid<Piece> grid)
-    {
-        GetComponent<SpriteRenderer>().color = Color.white;
-        yield return new WaitForSeconds(0.25f);
-        if(IsHost || IsClient) DespawnPieceServerRpc();
-        else Destroy(gameObject);
-    }
-
     public void SetValues(int health, bool explodesWithTime,PieceController pieceController)
     {
         this.health = health;
         this.explodesWithTime = explodesWithTime;
         if (explodesWithTime) generationTime = Time.time;
-
         myController = pieceController;
     }
     

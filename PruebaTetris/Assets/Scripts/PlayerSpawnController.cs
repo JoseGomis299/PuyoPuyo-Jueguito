@@ -41,10 +41,15 @@ public class PlayerSpawnController : NetworkBehaviour
             NetworkManager.OnClientConnectedCallback += SpawnPlayers;
             NetworkManager.OnClientDisconnectCallback += LeaveGame;
         }
+        else
+        {
+            AudioManager.Instance.ChangeMusic(AudioManager.Instance.backgroundMusics[1]);
+        }
     }
 
     private void SpawnPlayers(ulong obj)
     {
+        AudioManager.Instance.ChangeMusic(AudioManager.Instance.backgroundMusics[1]);
         SpawnPlayerServerRpc();
     }
 

@@ -10,7 +10,8 @@ public class Block
 {
     private readonly Piece[] pieceList;
     public Grid<Piece> grid { get; private set; }
-    
+    public int? numero;
+
     public int rotation { get; private set; }
     public bool fallen { get; set; }
     private PieceController _pieceController;

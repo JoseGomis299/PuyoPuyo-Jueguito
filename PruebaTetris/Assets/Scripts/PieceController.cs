@@ -101,7 +101,8 @@ public class PieceController : NetworkBehaviour
 
    private void Awake()
    {
-       maxHealth = 10;
+        Time.timeScale = 1;
+        maxHealth = 10;
        _health = maxHealth;
    }
 
@@ -749,6 +750,31 @@ public class PieceController : NetworkBehaviour
    /// </summary>
    public void CleanStage()
    {
+       GameObject menu =  GameObject.Find("Pause").transform.GetChild(1).gameObject;
+        menu.SetActive(true);
+        TMP_Text winText;
+        TMP_Text loseText;
+        if (!_isOnline && GetComponent<InputManager>().playerTwo)
+        {
+            winText = menu.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
+            loseText = menu.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
+        }
+        else// if (!_isOnline)
+        {
+            winText = menu.transform.GetChild(2).gameObject.GetComponent<TMP_Text>();
+            loseText = menu.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
+        }
+        //else if () ;
+
+         winText.text = "WINNER";
+         loseText.text = "LOSER";
+
+        Time.timeScale = 0;
+
+
+
+        return;
+
        if(_isOnline && !IsOwner) return;
        for (int x = 0; x < grid.GetWidth(); x++)
        {
@@ -776,10 +802,22 @@ public class PieceController : NetworkBehaviour
        else OnlineBlockGeneration();
    }
 
-   /// <summary>
-   /// <para>Sets the initial position of the player's grid</para>
-   /// </summary>
-   private void InitialPosition()
+    [ServerRpc]
+    private void SetWinnerTextServerRpc(ServerRpcParams serverRpcParams)
+    {
+
+    }
+
+    [ClientRpc]
+    private void SetWinnerTextClientRpc()
+    {
+
+    }
+
+    /// <summary>
+    /// <para>Sets the initial position of the player's grid</para>
+    /// </summary>
+    private void InitialPosition()
    {
        GameObject background;
 

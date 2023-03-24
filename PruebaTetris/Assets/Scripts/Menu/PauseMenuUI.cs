@@ -16,8 +16,9 @@ public class PauseMenuUI : MonoBehaviour
 
     private void Awake()
     {
-        resumeButton.onClick.AddListener(Resume);
-        quitButton.onClick.AddListener(() =>
+
+        if(resumeButton != null) resumeButton.onClick.AddListener(Resume);
+        if (quitButton != null) quitButton.onClick.AddListener(() =>
         {
             Time.timeScale = 1;
             if(NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
@@ -26,7 +27,7 @@ public class PauseMenuUI : MonoBehaviour
 
         if (NetworkManager.Singleton == null)
         {
-            restartButton.onClick.AddListener(() =>
+            if (restartButton != null) restartButton.onClick.AddListener(() =>
             {
                 Time.timeScale = 1;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);

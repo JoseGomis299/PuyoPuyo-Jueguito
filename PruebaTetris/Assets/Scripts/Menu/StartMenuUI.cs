@@ -22,4 +22,9 @@ public class StartMenuUI : MonoBehaviour
         quitButton.onClick.AddListener(Application.Quit);
         
     }
+
+    private void Start()
+    {
+        AudioManager.Instance.ChangeMusic(AudioManager.Instance.backgroundMusics[0]);
+    }
 }
