@@ -19,8 +19,11 @@ public class LobbyListUI : MonoBehaviour {
     [SerializeField] private Button leaveLobbyButton;
 
 
-    private void Awake() {
-        Instance = this;
+    private void Awake()
+    {
+        if (Instance != null) Destroy(gameObject);
+        else Instance = this;
+        
         AuthenticateUI.onQuickJoin += Hide;
 
         lobbySingleTemplate.gameObject.SetActive(false);
