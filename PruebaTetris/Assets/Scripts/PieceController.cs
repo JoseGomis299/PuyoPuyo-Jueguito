@@ -227,11 +227,12 @@ public class PieceController : NetworkBehaviour
         var id = serverRpcParams.Receive.SenderClientId;
         PieceController pieceController = NetworkManager.ConnectedClients[id].PlayerObject.GetComponent<PieceController>();
 
-        Block current;
-        Block[] next = new Block[2];
 
         if (!receivingGarbage)
         {
+            Block current;
+            Block[] next = new Block[2];
+            
             //IF _nextBlocks[0] == null GENERATES EVERY BLOCK SINCE THERE IS NOT IN THE GRID YET
             if (pieceController._nextBlocks[0] == null)
             {
@@ -316,45 +317,28 @@ public class PieceController : NetworkBehaviour
     [ClientRpc]
     private void SendClientsBlocksClientRpc(NetworkObjectReference[] currentPieces, NetworkObjectReference[] nextPieces1, NetworkObjectReference[] nextPieces2)
     {
+        if (grid == null)
+        {
+            _isOnline = NetworkManager != null;
+            InitialPosition();
+            grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
+            _nextBlocks = new Block[2];
+        }
+        
         currentPieces[0].TryGet(out var piece0);
         currentPieces[1].TryGet(out var piece1);
+        currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
+        nextPieces1[0].TryGet(out  piece0);
+        nextPieces1[1].TryGet(out  piece1);
+        _nextBlocks[0] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
+        nextPieces2[0].TryGet(out  piece0);
+        nextPieces2[1].TryGet(out  piece1);
+        _nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
         
-        if (piece0.IsOwner)
+        currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
+        for (int i = 0; i < _nextBlocks.Length; i++)
         {
-            currentBlock = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
-            nextPieces1[0].TryGet(out  piece0);
-            nextPieces1[1].TryGet(out  piece1);
-            _nextBlocks[0] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this); 
-            nextPieces2[0].TryGet(out  piece0);
-            nextPieces2[1].TryGet(out  piece1);
-            _nextBlocks[1] = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
-            currentBlock.SetPositionInGrid(Random.Range(0, grid.GetWidth()), grid.GetHeight());
-            
-            for (int i = 0; i < _nextBlocks.Length; i++)
-            {
-                _nextBlocks[i].SetPosition(_nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
-            }
-        }
-
-        else
-        {
-            if (grid == null)
-            {
-                _isOnline = NetworkManager != null;
-                InitialPosition();
-                grid = new Grid<Piece>((int)gridSize.x, (int)gridSize.y, cellSize, transform.position);
-            }
-            
-            Block block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
-            block.SetPositionInGrid(60, 50);
-            nextPieces1[0].TryGet(out  piece0);
-            nextPieces1[1].TryGet(out  piece1);
-            block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
-            block.SetPosition(_nextTransforms[0].position, 0.75f);
-            nextPieces2[0].TryGet(out  piece0);
-            nextPieces2[1].TryGet(out  piece1);
-            block = new Block(piece0.GetComponent<Piece>(), piece1.GetComponent<Piece>(), grid, this);
-            block.SetPosition(_nextTransforms[1].position, 0.75f*0.5f);
+            _nextBlocks[i].SetPosition(_nextTransforms[i].position, i== 0 ? 0.75f : 0.75f*0.5f*i);
         }
     }
     

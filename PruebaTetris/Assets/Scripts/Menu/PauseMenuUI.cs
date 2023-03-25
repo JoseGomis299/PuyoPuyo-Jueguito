@@ -45,7 +45,7 @@ public class PauseMenuUI : MonoBehaviour
     }
     private void OnEnable()
     {
-        resumeButton.Select();
+        if(resumeButton != null) resumeButton.Select();
         paused = true;
     }
 }
