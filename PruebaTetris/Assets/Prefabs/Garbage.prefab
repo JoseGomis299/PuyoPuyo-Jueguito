@@ -127,6 +127,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2461fa7d77201134590ad43ed16be613, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <explosionSound>k__BackingField: {fileID: 8300000, guid: df03d5eaa52ddf54983d2a206cc2a9b8, type: 3}
   check: 0
   fallen: 0
   justFallen: 0
+  networkDontMove:
+    m_InternalValue: 0

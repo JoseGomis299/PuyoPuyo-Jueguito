@@ -34,17 +34,12 @@ public class PieceNetwork : NetworkBehaviour
          _netState.Value = new PieceNetworkData()
          {
             Position = transform.position,
-            Scale = transform.localScale
          };
       }
       else
       {
-         if(_netState.Value.Scale == Vector3.zero) return;
-         
-         //transform.position = new Vector3(transform.position.x, _netState.Value.Position.y); 
+         if(_netState.Value.Position == Vector3.zero) return;
          if(!piece.networkDontMove.Value) transform.position = new Vector3(_netState.Value.Position.x+12, _netState.Value.Position.y);
-         
-         transform.localScale = _netState.Value.Scale;
       }
    }
 
@@ -72,11 +67,9 @@ public class PieceNetwork : NetworkBehaviour
    struct PieceNetworkData : INetworkSerializable
    {
       private float _x, _y;
-      private float _xS, _yS, _zS;
-
       internal Vector3 Position
       {
-         get => new Vector3(_x, _y, 0);
+         get => new Vector3(_x, _y);
          set
          {
             _x =  value.x;
@@ -84,24 +77,10 @@ public class PieceNetwork : NetworkBehaviour
          }
       }
       
-      internal Vector3 Scale
-      {
-         get => new Vector3(_xS, _yS, _zS);
-         set
-         {
-            _xS =  value.x;
-            _yS = value.y;
-            _zS = value.z;
-         }
-      }
       public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
       {
          serializer.SerializeValue(ref _x);
          serializer.SerializeValue(ref _y);
-         
-         serializer.SerializeValue(ref _xS);
-         serializer.SerializeValue(ref _yS);
-         serializer.SerializeValue(ref _zS);
       }
    }
 }

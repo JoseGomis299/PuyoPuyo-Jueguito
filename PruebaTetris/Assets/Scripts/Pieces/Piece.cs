@@ -8,6 +8,7 @@ using UnityEngine;
 ///
 public abstract class Piece : NetworkBehaviour
 {
+    [field: SerializeReference] public AudioClip explosionSound { get; private set; }
     [HideInInspector] public bool check;
     [HideInInspector] public bool fallen;
     [HideInInspector] public bool justFallen;
@@ -103,7 +104,7 @@ public abstract class Piece : NetworkBehaviour
         
         if (y >= grid.GetHeight())
         {
-            pieceController.CleanStage();
+            pieceController.LoseGame();
             if (NetworkManager != null) Despawn();
             else Destroy(gameObject);
         }
@@ -224,8 +225,25 @@ public abstract class Piece : NetworkBehaviour
 
         transform.position = grid.GetCellCenter(x, y);
     }
-    public abstract void Explode(Grid<Piece> grid);
-    public abstract IEnumerator Explosion(Grid<Piece> grid);
+    public virtual void Explode(Grid<Piece> grid)
+    {
+        exploded = true;
+        grid.SetValue(transform.position, null);
+        StartCoroutine(Explosion(grid));
+    }
+
+    public override void OnDestroy()
+    {
+        AudioManager.Instance.PlaySound(explosionSound);
+    }
+
+    public IEnumerator Explosion(Grid<Piece> grid)
+    {
+        GetComponent<SpriteRenderer>().color = Color.white;
+        yield return new WaitForSeconds(0.25f);
+        if (IsHost || IsClient) DespawnPieceServerRpc();
+        else Destroy(gameObject);
+    }
     public abstract bool Equals(Piece piece);
 
     public void Despawn()
