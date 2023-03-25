@@ -52,8 +52,6 @@ public class LobbyManager : NetworkBehaviour
     private Lobby joinedLobby;
     public string playerName { get; private set; }
 
-    private bool authenticated;
-
     private void Awake() {
         Instance = this;
     }
@@ -66,12 +64,12 @@ public class LobbyManager : NetworkBehaviour
     
     public async void Authenticate(string playerName)
     {
-        if(authenticated) { 
+        if(UnityServices.State == ServicesInitializationState.Initialized && AuthenticationService.Instance.IsSignedIn) { 
             OnLeftLobby?.Invoke(this, EventArgs.Empty); 
             RefreshLobbyList();  
             onAuthenticationComplete?.Invoke(); 
-            return;}
-        authenticated = true;
+            return;
+        }
         
         this.playerName = playerName;
         InitializationOptions initializationOptions = new InitializationOptions();
@@ -92,7 +90,7 @@ public class LobbyManager : NetworkBehaviour
 
     public void DeAuthenticate()
     {
-        if(!authenticated) return;
+        if(!AuthenticationService.Instance.IsSignedIn) return;
         AuthenticationService.Instance.SignOut();
         AuthenticationService.Instance.ClearSessionToken();
     }

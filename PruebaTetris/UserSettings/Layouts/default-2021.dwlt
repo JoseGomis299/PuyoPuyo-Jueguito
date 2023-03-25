@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 200}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 3938
+  controlID: 76
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 3987
+  controlID: 81
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -170,7 +170,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 100}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 3988
+  controlID: 82
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -190,8 +190,8 @@ MonoBehaviour:
     y: 0
     width: 374.94342
     height: 532.5283
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 221}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 14}
   m_Panes:
   - {fileID: 14}
@@ -216,8 +216,8 @@ MonoBehaviour:
     y: 0
     width: 430.18866
     height: 532.5283
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 221}
+  m_MaxSize: {x: 4002, y: 4021}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -242,8 +242,8 @@ MonoBehaviour:
     y: 0
     width: 487.24536
     height: 532.5283
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 221}
+  m_MaxSize: {x: 4002, y: 4021}
   m_ActualView: {fileID: 13}
   m_Panes:
   - {fileID: 13}
@@ -259,7 +259,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: ProjectBrowser
+  m_Name: ConsoleWindow
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
@@ -268,14 +268,14 @@ MonoBehaviour:
     y: 532.5283
     width: 1292.3774
     height: 314.0755
-  m_MinSize: {x: 231, y: 271}
-  m_MaxSize: {x: 10001, y: 10021}
-  m_ActualView: {fileID: 16}
+  m_MinSize: {x: 101, y: 121}
+  m_MaxSize: {x: 4001, y: 4021}
+  m_ActualView: {fileID: 17}
   m_Panes:
   - {fileID: 16}
   - {fileID: 17}
-  m_Selected: 0
-  m_LastSelected: 1
+  m_Selected: 1
+  m_LastSelected: 0
 --- !u!114 &12
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -295,8 +295,8 @@ MonoBehaviour:
     y: 0
     width: 446.4906
     height: 846.6038
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 71}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -425,9 +425,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 
+      m_SelectedIDs: 52080000
       m_LastClickedID: 0
-      m_ExpandedIDs: eae8feff34e9feff68ebfeff9eebfeffbaebfeff0eecfeff1eecfeff2cfbfeff76fbfeffaafdfeffe0fdfefffcfdfeff50fefeff60fefefff0fefeff4200ffff7c0affffc60afffffa0cffff300dffff4c0dffffa00dffffb00dffff9819ffffe219ffff161cffff4c1cffff681cffffbc1cffffcc1cffffce29ffff182affff4c2cffff822cffff9e2cfffff22cffff022dffffea3effff343fffff6841ffff9e41ffffba41ffff0e42ffff1e42ffffae51fffff851ffff2c54ffff6254ffff7e54ffffd254ffffe254ffff3c68ffff8668ffffba6afffff06affff0c6bffff606bffff706bffffd089ffff5a8fffffa48fffffd891ffff0e92ffff2a92ffff7e92ffff8e92fffff2a0ffff3ea1ffff72a3ffffa8a3ffffc4a3ffff18a4ffff28a4ffffc6d8ffff10d9ffff48dbffff82dbffffa2dbfffffadbffff0edcffff98dcffffeeddffffcedfffff1ae1ffffb4e3ffff1ae4ffff9ce4ffffd6f8ffffbafaffffa0940000a6950000ec2c01009a2e0100
+      m_ExpandedIDs: f4f5ffff3ef6ffff72f8ffffa8f8ffffc4f8ffff18f9ffff28f9ffff10fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -698,9 +698,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 14.120541, y: 3.8156798, z: -0.2153445}
+    m_Target: {x: 14.989624, y: 3.104778, z: -0.17591321}
     speed: 2
-    m_Value: {x: 14.120541, y: 3.8156798, z: -0.2153445}
+    m_Value: {x: 14.989624, y: 3.104778, z: -0.17591321}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -751,9 +751,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 14.013833
+    m_Target: 10.07069
     speed: 2
-    m_Value: 14.013833
+    m_Value: 10.07069
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -819,22 +819,22 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scenes
+    - Assets/LobbyOnline/Scripts
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 67
   m_LastFolders:
-  - Assets/Scenes
+  - Assets/LobbyOnline/Scripts
   m_LastFoldersGridSize: 67
   m_LastProjectPath: C:\Users\Jose Gomis\Documents\GitHub\PuyoPuyo-Jueguito\PruebaTetris
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: fc720000
-    m_LastClickedID: 29436
-    m_ExpandedIDs: 0000000060720000627200007c72000000ca9a3bffffff7f
+    m_SelectedIDs: f86f0000
+    m_LastClickedID: 28664
+    m_ExpandedIDs: 00000000986f00009a6f0000a86f000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -862,7 +862,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000607200006272000000ca9a3bffffff7f
+    m_ExpandedIDs: 00000000986f00009a6f0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -887,8 +887,8 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: 
-    m_LastClickedInstanceID: 0
+    m_SelectedInstanceIDs: 52080000
+    m_LastClickedInstanceID: 2130
     m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c6230000fa6f00008a7d0000
     m_RenameOverlay:
