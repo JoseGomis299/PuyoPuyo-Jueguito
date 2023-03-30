@@ -56,6 +56,7 @@ public class CharacterSelectorUI : MonoBehaviour {
     
     private void UpdatePlayerCharacter(LobbyCharacterSO characterSo)
     {
+        if(!characters[index].gameObject.activeInHierarchy) characters[index].gameObject.SetActive(true);
         playerCharacters[index] = characterSo;
         characters[index].UpdatePlayer(characterSo);
         index = (index + 1) % playerCharacters.Length;

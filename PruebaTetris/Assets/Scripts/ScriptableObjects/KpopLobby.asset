@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f047f3ea1afd5f49a3e9bae5a47b1fd, type: 3}
   m_Name: KpopLobby
   m_EditorClassIdentifier: 
-  name: Yung Kim Min
+  name: Tea Sung
   abilityName: Heart Melting
   abilityDescription: Heals himself half of its health.
-  characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
-  characterProfile: {fileID: 21300000, guid: d7413f52dd32f194ba85ccc2f0732881, type: 3}
+  characterBody: {fileID: 21300000, guid: 0939dcfa9df19314c84e85ed4f63c885, type: 3}
+  characterProfile: {fileID: 21300000, guid: 28529c08eda1f234db11ee30a598c9b8, type: 3}
   id: 3

@@ -249,6 +249,7 @@ public class Block
         }, 0.1f);
     }
     
+    
     public void SetPosition(Vector3 position, float scaleMultiplier)
     {
         if(NetworkManager.Singleton != null) foreach (var piece in pieceList) piece.SetDontMove(true);

@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f047f3ea1afd5f49a3e9bae5a47b1fd, type: 3}
   m_Name: ReaguetonLobby
   m_EditorClassIdentifier: 
-  name: Maluma Beibi
+  name: Bad Money
   abilityName: Des-pa-sito
   abilityDescription: 'slows down time
 
     for the enemy.'
-  characterIcon: {fileID: 0}
-  characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
+  characterBody: {fileID: 21300000, guid: 5f2c6b5515c69684bb3a9753fbe7922d, type: 3}
+  characterProfile: {fileID: 21300000, guid: b01105ca16d17f34dbdff8a4e4baca80, type: 3}
   id: 0

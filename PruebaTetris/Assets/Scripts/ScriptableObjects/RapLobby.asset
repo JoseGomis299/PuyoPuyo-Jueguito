@@ -16,6 +16,6 @@ MonoBehaviour:
   abilityName: Freestyle
   abilityDescription: Ereases all the garbage in his field and throws half of it
     to the enemy.
-  characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
-  characterProfile: {fileID: 21300000, guid: 240eb4a97d89aae43901c05b8a491568, type: 3}
+  characterBody: {fileID: 21300000, guid: 426de1aa165081744aa0348f49322719, type: 3}
+  characterProfile: {fileID: 21300000, guid: 23183b84e066a6543ab22a3812bffc11, type: 3}
   id: 1

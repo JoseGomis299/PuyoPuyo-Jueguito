@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f047f3ea1afd5f49a3e9bae5a47b1fd, type: 3}
   m_Name: MetalLobby
   m_EditorClassIdentifier: 
-  name: KissKo
+  name: Kiss KO
   abilityName: Pure Decadence
-  abilityDescription: Throws garbage which has 2 points of health and doesn't destroys
-    with timeto the enemy.
-  characterBody: {fileID: 21300000, guid: 0ccc508108fa6ed4fa11b4a467d7f609, type: 3}
-  characterProfile: {fileID: 21300000, guid: ec1c53200d7e385428ee41fb94009d87, type: 3}
+  abilityDescription: Throws to the enemy garbage which has 2 points of health and
+    doesn't destroys with time.
+  characterBody: {fileID: 21300000, guid: 32abd3ad93824ec4e83e09924c877009, type: 3}
+  characterProfile: {fileID: 21300000, guid: 9120ef2b41c93064ab248fad491615f9, type: 3}
   id: 2
