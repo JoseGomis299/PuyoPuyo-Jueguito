@@ -125,7 +125,7 @@ public class PieceController : NetworkBehaviour
        if (_isOnline)
        {
            _networkGarbageReceiveText.OnValueChanged = (value, newValue) => { _garbageIndicator.text = newValue.ToString(); };
-           _networkHealth.OnValueChanged = (value, newValue) => { OnHealthChanged?.Invoke(newValue); };
+           _networkHealth.OnValueChanged = (value, newValue) => {  OnHealthChanged?.Invoke(newValue); if(newValue <=  0) LoseGame(); };
        }
        if (_isOnline && !IsOwner) { return; }
 
@@ -861,6 +861,8 @@ public class PieceController : NetworkBehaviour
 
        if(IsOwner) _networkHealth.Value = _health;
        else OnHealthChanged?.Invoke(_health);
+       
+       if(!_isOnline && _health <= 0) LoseGame();
    }
    
    #endregion
