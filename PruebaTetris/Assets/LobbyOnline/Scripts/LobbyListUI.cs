@@ -9,7 +9,7 @@ public class LobbyListUI : MonoBehaviour {
 
 
     public static LobbyListUI Instance { get; private set; }
-    public static event Action onLeaveLobbyList;
+    public event Action onLeaveLobbyList;
 
 
     [SerializeField] private Transform lobbySingleTemplate;
@@ -24,8 +24,6 @@ public class LobbyListUI : MonoBehaviour {
         if (Instance != null) Destroy(gameObject);
         else Instance = this;
         
-        AuthenticateUI.onQuickJoin += Hide;
-
         lobbySingleTemplate.gameObject.SetActive(false);
 
         refreshButton.onClick.AddListener(RefreshButtonClick);
@@ -42,6 +40,12 @@ public class LobbyListUI : MonoBehaviour {
         LobbyManager.Instance.OnJoinedLobby += LobbyManager_OnJoinedLobby;
         LobbyManager.Instance.OnLeftLobby += LobbyManager_OnLeftLobby;
         LobbyManager.Instance.OnKickedFromLobby += LobbyManager_OnKickedFromLobby;
+        AuthenticateUI.onQuickJoin += Hide;
+    }
+
+    private void OnDestroy()
+    {
+        AuthenticateUI.onQuickJoin -= Hide;
     }
 
     private void LobbyManager_OnKickedFromLobby(object sender, LobbyManager.LobbyEventArgs e) {

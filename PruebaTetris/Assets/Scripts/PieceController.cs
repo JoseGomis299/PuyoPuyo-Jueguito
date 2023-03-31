@@ -1003,10 +1003,8 @@ public class PieceController : NetworkBehaviour
                }
 
                return true;
-
            });
-
-
+           
            //CONTINUE
            _garbageDoubleHealthQuantityReceive = 0;
            _garbageQuantityReceive = 0;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,9 +19,11 @@ public class AuthenticateUI : MonoBehaviour {
 
     private void Awake()
     {
-        LobbyListUI.onLeaveLobbyList += () => gameObject.SetActive(true);
-        
-        quitButton.onClick.AddListener(()=>SceneManager.LoadScene("Menu"));
+        quitButton.onClick.AddListener(()=>
+        {
+            Destroy(NetworkManager.Singleton.gameObject);
+            SceneManager.LoadScene("Menu");
+        });
         lobbyButton.onClick.AddListener(() =>
         {
             quickJoin = false;
@@ -37,7 +40,9 @@ public class AuthenticateUI : MonoBehaviour {
     private void Start()
     {
         LobbyManager.Instance.onAuthenticationComplete += StartGame;
+        LobbyListUI.Instance.onLeaveLobbyList += () => gameObject.SetActive(true);
     }
+    
 
     private void StartGame()
     {

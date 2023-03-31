@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -23,7 +24,6 @@ public class LobbyCreateUI : MonoBehaviour {
 
     private void Awake() {
         Instance = this;
-        AuthenticateUI.onQuickJoin += Hide;
 
         quitButton.onClick.AddListener(()=>Hide());
         
@@ -41,6 +41,11 @@ public class LobbyCreateUI : MonoBehaviour {
             UpdateText();
         });
         Hide();
+    }
+
+    private void Start()
+    {
+        AuthenticateUI.onQuickJoin += Hide;
     }
 
     public void ChangeLobbyName(string name)

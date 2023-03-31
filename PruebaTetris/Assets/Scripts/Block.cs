@@ -173,6 +173,7 @@ public class Block
         if (Time.time - lastFallenTime >= 0.6f)
         {
             stopFalling = false;
+            _advisedFromFalling = true;
         }
     }
 
